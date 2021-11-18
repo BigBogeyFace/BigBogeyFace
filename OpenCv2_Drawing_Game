@@ -1,0 +1,265 @@
+# Gesture Based Drawing Game By Big Bogey Face:
+
+# Import Open cv2 Library
+import cv2
+import numpy as np
+
+# Frame Dimension Perameters:
+Frame_Width=1280 # (1280 = 720) (1120 = 630) (960 = 540) (640 = 360)
+Frame_Height=int(Frame_Width/16*9)
+
+# Colours (BGR):
+Black=(0,0,0)
+Red=(0,0,255) 
+Purple=(255,0,255)
+Orange=(0,100,255)
+Brown=(5,85,160)
+Yellow=(0,255,255)
+Light_Green=(0,255,150)
+Green=(0,255,0)
+Blue=(255,0,0)
+Cyan=(255,255,0)
+White=(255,255,255)
+
+# Variables:
+Line_Thickness=5
+Font_Size=.4
+Font_Thickness=1
+BackGround_Font_Thickness=3
+font = cv2.FONT_HERSHEY_SIMPLEX
+Solid=-1
+Brush_Size=8
+One_Hand=1
+Two_Hands=2
+Finger_Colour=White
+
+# Generate Class:
+class mpHands:
+    import mediapipe as mp
+    def __init__(self,Max_Hands=2,Tol1=.5,Tol2=.5):
+        self.hands=self.mp.solutions.hands.Hands(False,Max_Hands,Tol1,Tol2)
+
+    # Generate Method:
+    def Marks(self,Frame):
+        My_Hands=[]
+        Hands_Type=[]
+        Frame_RGB=cv2.cvtColor(Frame,cv2.COLOR_BGR2RGB)
+        Results=self.hands.process(Frame_RGB)
+        if Results.multi_hand_landmarks != None:
+            for hand in Results.multi_handedness: 
+                Hand_Type=(hand.classification[0].label)
+                Hands_Type.append(Hand_Type)
+            for Hand_Land_Marks in Results.multi_hand_landmarks:
+                My_Hand=[]
+                for Land_Mark in Hand_Land_Marks.landmark:
+                    My_Hand.append((int(Land_Mark.x*Frame_Width),int(Land_Mark.y*Frame_Height)))
+                My_Hands.append(My_Hand)
+        return My_Hands,Hands_Type 
+
+# Generate Object:
+Find_Hands=mpHands(Two_Hands)
+
+# Setup Camera:
+Camera=cv2.VideoCapture(0,cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+Camera.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc(*'MJPG'))
+
+# Generate Drawing Frame:
+Draw_Frame=np.zeros([Frame_Height,Frame_Width,3],dtype=np.uint8)
+
+# Begin Program Loop:
+while True:
+
+    # Get Frame:
+    Ignore,Frame=Camera.read()
+    cv2.rectangle(Frame,(0,0),(Frame_Width,Frame_Height),Black,Line_Thickness) 
+    Frame=cv2.flip(Frame,1)
+    Clean_Frame=Frame
+
+    # Collect All Hand Data:
+    Hand_Data,Hands_Type=Find_Hands.Marks(Clean_Frame)
+
+    # Reset/Set Draw Variable:
+    Draw=False
+
+    # Find Hands And Hand Types:
+    for Hand,Hand_Type in zip(Hand_Data,Hands_Type):
+
+        # Find Left Hand:
+        if Hand_Type=='Left':
+
+            # Find Hand Parts:
+            for Find in [3,4,6,8,10,12,14,16,18,20]:
+                Left_Thumb_Tip=Hand[4]
+                Left_Thumb_Interphalangeal_Joint=Hand[3]
+                Left_Index_Finger_Tip=Hand[8]
+                Left_Index_Finger_Proximal_Interphalangeal_Joint=Hand[6]
+                Left_Middle_Finger_Tip=Hand[12]
+                Left_Middle_Finger_Metacarpophalangeal_Joint=Hand[9]
+                Left_Middle_Finger_Proximal_Interphalangeal_Joint=Hand[10]
+                Left_Ring_Finger_Tip=Hand[16]
+                Left_Ring_Finger_Proximal_Interphalangeal_Joint=Hand[14]
+                Left_Little_Finger_Tip=Hand[20]
+                Left_Little_Finger_Proximal_Interphalangeal_Joint=Hand[18]
+
+                # If Left Hand Is Open:
+                if (Left_Thumb_Tip[0]>Left_Thumb_Interphalangeal_Joint[0] and 
+                Left_Index_Finger_Tip[1]<Left_Index_Finger_Proximal_Interphalangeal_Joint[1] and 
+                Left_Middle_Finger_Tip[1]<Left_Middle_Finger_Proximal_Interphalangeal_Joint[1] and
+                Left_Ring_Finger_Tip[1]<Left_Ring_Finger_Proximal_Interphalangeal_Joint[1] and 
+                Left_Little_Finger_Tip[1]<Left_Little_Finger_Proximal_Interphalangeal_Joint[1]):
+                    cv2.putText(Frame,"Draw",Left_Middle_Finger_Metacarpophalangeal_Joint,font,Font_Size,White,BackGround_Font_Thickness)
+                    cv2.putText(Frame,"Draw",Left_Middle_Finger_Metacarpophalangeal_Joint,font,Font_Size,Black,Font_Thickness)
+                    Draw = True
+                else:
+                    cv2.putText(Frame,"Wait",Left_Middle_Finger_Metacarpophalangeal_Joint,font,Font_Size,White,BackGround_Font_Thickness)
+                    cv2.putText(Frame,"Wait",Left_Middle_Finger_Metacarpophalangeal_Joint,font,Font_Size,Black,Font_Thickness)
+
+    # Search Through Hands Again:
+    for Hand,Hand_Type in zip(Hand_Data,Hands_Type):
+
+        # Find Right Hand:
+        if Hand_Type=='Right':
+
+            # Find Index Finger:
+            for Find in [8]:
+                Right_Index_Finger_Tip=Hand[8]
+
+                # Brush Size Selection:
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*0 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*1)):
+                    Brush_Size=20
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*1 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*2)):
+                    Brush_Size=18
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*2 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*3)):
+                    Brush_Size=16
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*3 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*4)):
+                    Brush_Size=14
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*4 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*5)):
+                    Brush_Size=12
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*5 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*6)):
+                    Brush_Size=10
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*6 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*7)):
+                    Brush_Size=8
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*7 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*8)):
+                    Brush_Size=6
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*8 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*9)):
+                    Brush_Size=4
+                if (Right_Index_Finger_Tip[1]<int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*9 and Right_Index_Finger_Tip[0]<int(Frame_Width/10*10)):
+                    Brush_Size=2
+
+                # Colour Selection:
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*0 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*1):
+                    Finger_Colour = Red
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*1 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*2):
+                    Finger_Colour = Purple
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*2 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*3):
+                    Finger_Colour = Orange
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*3 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*4):
+                    Finger_Colour = Brown
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*4 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*5):
+                    Finger_Colour = Yellow
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*5 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*6):
+                    Finger_Colour = Light_Green
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*6 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*7):
+                    Finger_Colour = Green
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*7 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*8):
+                    Finger_Colour = Blue
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*8 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*9):
+                    Finger_Colour = Cyan
+                if (Right_Index_Finger_Tip[1]>Frame_Height-int(Frame_Height/10) and 
+                    Right_Index_Finger_Tip[0]>int(Frame_Width/10)*9 and Right_Index_Finger_Tip[0]<int(Frame_Width/10)*10):
+                    Finger_Colour = White
+
+                # Draw On Draw_Frame:
+                if Draw == True:
+                    cv2.circle(Draw_Frame,Right_Index_Finger_Tip,Brush_Size,Finger_Colour,Solid)
+                    cv2.circle(Frame,Right_Index_Finger_Tip,Brush_Size,Finger_Colour,Solid)
+                    cv2.circle(Frame,Right_Index_Finger_Tip,Brush_Size,Black,1)
+
+    # Display Brush Sizes:
+    Fraction=.5
+    Temporary_Radius=20
+    for i in range (0,10,1):
+        cv2.circle(Frame,(int(Frame_Width/10*Fraction),int(Frame_Height/10*.5)+Temporary_Radius),Temporary_Radius,White,Solid)
+        cv2.circle(Frame,(int(Frame_Width/10*Fraction),int(Frame_Height/10*.5)+Temporary_Radius),Temporary_Radius,Black,2)
+        Fraction=Fraction+1
+        Temporary_Radius=Temporary_Radius-2
+
+    # Display Colour Pallet:
+    cv2.rectangle(Frame,(int(Frame_Width/10)*0,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(Red),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*1,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(Purple),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*2,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(Orange),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*3,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(Brown),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*4,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(Yellow),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*5,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(Light_Green),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*6,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(Green),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*7,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(Blue),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*8,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(Cyan),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*9,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(White),Solid)
+    cv2.rectangle(Frame,(int(Frame_Width/10)*9,Frame_Height-int(Frame_Height/10),int(Frame_Width/10),int(Frame_Height/10)),(White),Solid)
+    cv2.putText(Frame,"Rubber",(int(Frame_Width/9.8)*9,Frame_Height-int(Frame_Height/24)),font,Font_Size,Black,BackGround_Font_Thickness)
+    cv2.putText(Frame,"Rubber",(int(Frame_Width/9.8)*9,Frame_Height-int(Frame_Height/24)),font,Font_Size,White,Font_Thickness)
+
+    # Merge Frames:
+    Draw_HSV=cv2.cvtColor(Draw_Frame,cv2.COLOR_BGR2HSV)
+    Lower_Bound=np.array([0,200,1])
+    Upper_Bound=np.array([179,255,255])
+    Mask=cv2.inRange(Draw_HSV,Lower_Bound,Upper_Bound)
+    Not_Mask=cv2.bitwise_not(Mask)
+    My_Object=cv2.bitwise_and(Frame,Frame,mask=Not_Mask)
+    Final_Display=Draw_Frame+My_Object
+
+    # Display Index Finger (Brush), Above All Else:
+    for Hand,Hand_Type in zip(Hand_Data,Hands_Type):
+        if Hand_Type=='Right':
+            for Find in [8]:
+                Index_Finger_Tip=Hand[8]
+                cv2.circle(Final_Display,Right_Index_Finger_Tip,Brush_Size,Finger_Colour,Solid)
+                cv2.circle(Final_Display,Right_Index_Finger_Tip,Brush_Size,Black,1)
+
+    # Final Display:
+    cv2.imshow('Final_Display',Final_Display)
+    cv2.moveWindow('Final_Display',0,0)
+
+    # Check For "Q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Many Thanks To Mr Paul McWhorter For His Most Excellent YouTube Tutorials.
+# Please Check The Description Below For A Link To His Channel.
+# Like And Subscribe For More Content...
