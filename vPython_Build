@@ -1,0 +1,647 @@
+# vPython Build By Big Bogey Face
+
+# Import Essentials:
+from vpython import *
+
+# Setup Canvas:
+scene=canvas(width=1260,height=550,background=color.black)
+
+# Initialisers and Global Variables:
+Initialised=False
+Intro=False
+Sphere_Counter=0
+Cube_Counter=0
+Ring_Counter=0
+Pyramid_Counter=0
+Cylinder_Counter=0
+Last_Picked_Sphere=False
+Last_Picked_Cube=False
+Last_Picked_Ring=False
+Last_Picked_Cylinder=False
+Last_Picked_Pyramid=False
+
+# Initialiser:
+if Initialised == False:
+    X_Position=0
+    Y_Position=0
+    Z_Position=0
+    size=1
+    Object_Radius=1
+    Object_Length=1
+    Object_Width=1
+    Object_Height=1
+    Object_axis_X=1
+    Object_axis_Y=0
+    Object_axis_Z=0
+    Initialised = True
+
+# Generate Spheres:
+Number_Of_Spheres=50
+Sphere=[]
+for i in range (0,Number_Of_Spheres,1): 
+    Spheres=sphere(radius=Object_Radius,pos=vector(0,0,0),color=color.white,visible=False)
+    Sphere.append(Spheres)
+
+# Generate Cubes:
+Number_Of_Cubes=50
+Cube=[]
+for i in range (0,Number_Of_Cubes,1): 
+    Cubes=box(length=Object_Length,width=Object_Width,height=Object_Height,pos=vector(0,0,0),
+    axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z),color=color.white,visible=False)
+    Cube.append(Cubes)
+
+# Generate Rings:
+Number_Of_Rings=50
+Ring=[]
+for i in range (0,Number_Of_Rings,1): 
+    Rings=ring(radius=Object_Radius,size=vector(Object_Length,Object_Height,Object_Width),pos=vector(0,0,0),
+    axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z),color=color.white,visible=False)
+    Ring.append(Rings)
+
+# Generate Cylinders:
+Number_Of_Cylinders=50
+Cylinder=[]
+for i in range (0,Number_Of_Cylinders,1):
+    Cylinders=cylinder(radius=Object_Radius,length=Object_Length,pos=vector(0,0,0),
+    axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z),color=color.white,visible=False)
+    Cylinder.append(Cylinders)
+
+# Generate Pyramids:
+Number_Of_Pyramids=50
+Pyramid=[]
+for i in range (0,Number_Of_Pyramids,1): 
+    Pyramids=pyramid(length=Object_Length,width=Object_Width,height=Object_Height,pos=vector(0,0,0),
+    axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z),color=color.white,visible=False)
+    Pyramid.append(Pyramids) 
+
+# Reset Slider:
+def Slider_Reset():
+    X_Slider.value=0
+    Y_Slider.value=0
+    Z_Slider.value=0
+
+# Reset Position Variables:
+def Position_Reset():
+    global X_Position
+    global Y_Position
+    global Z_Position
+    X_Position=0
+    Y_Position=0
+    Z_Position=0
+
+# Sphere Shape (Button):
+def Sphere_Shape(x):
+    global Sphere_Counter
+    global Last_Picked_Sphere
+    global Last_Picked_Cube
+    global Last_Picked_Ring
+    global Last_Picked_Cylinder
+    global Last_Picked_Pyramid
+    Sphere[Sphere_Counter].visible=True
+    Sphere[Sphere_Counter].radius=Object_Radius
+    Last_Picked_Sphere = True
+    Last_Picked_Cube = False
+    Last_Picked_Ring = False
+    Last_Picked_Cylinder = False
+    Last_Picked_Pyramid = False
+    Sphere_Counter=Sphere_Counter+1
+    Slider_Reset()
+    Position_Reset()
+    if Sphere_Counter>49:
+        Warning=label(text="You Have Used All The Spheres Available",font='sans',box=False,visible=True)
+        sleep(3)
+        Warning.visible=False
+button(bind=Sphere_Shape,text='Sphere',color=color.black,background=color.white,pos=scene.title_anchor)
+
+# Cube Shape (Button):
+def Cube_Shape(x):
+    global Cube_Counter
+    global Last_Picked_Sphere
+    global Last_Picked_Cube
+    global Last_Picked_Ring
+    global Last_Picked_Cylinder
+    global Last_Picked_Pyramid
+    Cube[Cube_Counter].visible=True
+    Cube[Cube_Counter].axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z)
+    Cube[Cube_Counter].length=Object_Length
+    Cube[Cube_Counter].width=Object_Width
+    Cube[Cube_Counter].height=Object_Height
+    Last_Picked_Sphere = False
+    Last_Picked_Cube = True
+    Last_Picked_Ring = False
+    Last_Picked_Cylinder = False
+    Last_Picked_Pyramid = False
+    Cube_Counter=Cube_Counter+1
+    Slider_Reset()
+    Position_Reset()
+    if Cube_Counter>49:
+        Warning=label(text="You Have Used All The Cubes Available",font='sans',box=False,visible=True)
+        sleep(3)
+        Warning.visible=False
+button(bind=Cube_Shape,text='Cube',color=color.black,background=color.white,pos=scene.title_anchor)
+
+# Ring Shape (Button):
+def Ring_Shape(x):
+    global Ring_Counter
+    global Last_Picked_Sphere
+    global Last_Picked_Cube
+    global Last_Picked_Ring
+    global Last_Picked_Cylinder
+    global Last_Picked_Pyramid
+    Ring[Ring_Counter].visible=True
+    Ring[Ring_Counter].axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z)
+    Ring[Ring_Counter].radius=Object_Radius
+    Ring[Ring_Counter].length=Object_Length
+    Ring[Ring_Counter].height=Object_Height
+    Ring[Ring_Counter].width=Object_Width
+    Last_Picked_Sphere = False
+    Last_Picked_Cube = False
+    Last_Picked_Ring = True
+    Last_Picked_Cylinder = False
+    Last_Picked_Pyramid = False
+    Ring_Counter=Ring_Counter+1
+    Slider_Reset()
+    Position_Reset()
+    if Ring_Counter>49:
+        Warning=label(text="You Have Used All The Rings Available",font='sans',box=False,visible=True)
+        sleep(3)
+        Warning.visible=False
+button(bind=Ring_Shape,text='Ring',color=color.black,background=color.white,pos=scene.title_anchor)
+
+# Cylinder Shape (Button):
+def Cylinder_Shape(x):
+    global Cylinder_Counter
+    global Last_Picked_Sphere
+    global Last_Picked_Cube
+    global Last_Picked_Ring
+    global Last_Picked_Cylinder
+    global Last_Picked_Pyramid
+    Cylinder[Cylinder_Counter].visible=True
+    Cylinder[Cylinder_Counter].axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z)
+    Cylinder[Cylinder_Counter].length=Object_Length
+    Cylinder[Cylinder_Counter].radius=Object_Radius
+    Last_Picked_Sphere = False
+    Last_Picked_Cube = False
+    Last_Picked_Ring = False
+    Last_Picked_Cylinder = True
+    Last_Picked_Pyramid = False
+    Cylinder_Counter=Cylinder_Counter+1
+    Slider_Reset()
+    Position_Reset()
+    if Cylinder_Counter>49:
+        Warning=label(text="You Have Used All The Cylinders Available",font='sans',box=False,visible=True)
+        sleep(3)
+        Warning.visible=False
+button(bind=Cylinder_Shape,text='Cylinder',color=color.black,background=color.white,pos=scene.title_anchor)
+
+# Pyramid Shape (Button):
+def Pyramid_Shape(x):
+    global Pyramid_Counter
+    global Last_Picked_Sphere
+    global Last_Picked_Cube
+    global Last_Picked_Ring
+    global Last_Picked_Cylinder
+    global Last_Picked_Pyramid
+    Pyramid[Pyramid_Counter].visible=True
+    Pyramid[Pyramid_Counter].axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z)
+    Pyramid[Pyramid_Counter].length=Object_Length
+    Pyramid[Pyramid_Counter].width=Object_Width
+    Pyramid[Pyramid_Counter].height=Object_Height
+    Last_Picked_Sphere = False
+    Last_Picked_Cube = False
+    Last_Picked_Ring = False
+    Last_Picked_Cylinder = False
+    Last_Picked_Pyramid = True
+    Pyramid_Counter=Pyramid_Counter+1
+    Slider_Reset()
+    Position_Reset()
+    if Pyramid_Counter>49:
+        Warning=label(text="You Have Used All The Pyramids Available",font='sans',box=False,visible=True)
+        sleep(3)
+        Warning.visible=False
+button(bind=Pyramid_Shape,text='Pyramid',color=color.black,background=color.white,pos=scene.title_anchor)
+
+# Colour Black (Button):
+def Black(x):
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].color=color.black    
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].color=color.black    
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].color=color.black
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].color=color.black
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].color=color.black
+button(bind=Black,text='Black',color=color.white,background=color.black,pos=scene.title_anchor)
+
+# Colour Red (Button):
+def Red(x):
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].color=color.red    
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].color=color.red    
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].color=color.red
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].color=color.red
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].color=color.red
+button(bind=Red,text='Red',color=color.black,background=color.red,pos=scene.title_anchor)
+
+# Colour Orange (Button):
+def Orange(x):
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].color=color.orange    
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].color=color.orange    
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].color=color.orange
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].color=color.orange
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].color=color.orange
+button(bind=Orange,text='Orange',color=color.black,background=color.orange,pos=scene.title_anchor)
+
+# Colour Yellow (Button):
+def Yellow(x):
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].color=color.yellow    
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].color=color.yellow    
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].color=color.yellow
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].color=color.yellow
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].color=color.yellow
+button(bind=Yellow,text='Yellow',color=color.black,background=color.yellow,pos=scene.title_anchor)
+
+# Colour Green (Button):
+def Green(x):
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].color=color.green    
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].color=color.green
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].color=color.green
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].color=color.green
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].color=color.green
+button(bind=Green,text='Green',color=color.black,background=color.green,pos=scene.title_anchor)
+
+# Colour Cyan (Button):
+def Cyan(x):
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].color=color.cyan    
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].color=color.cyan
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].color=color.cyan
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].color=color.cyan
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].color=color.cyan
+button(bind=Cyan,text='Cyan',color=color.black,background=color.cyan,pos=scene.title_anchor)
+
+# Colour Blue (Button):
+def Blue(x):
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].color=color.blue    
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].color=color.blue
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].color=color.blue
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].color=color.blue
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].color=color.blue
+button(bind=Blue,text='Blue',color=color.black,background=color.blue,pos=scene.title_anchor)
+
+# Colour Magenta (Button):
+def Magenta(x):
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].color=color.magenta    
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].color=color.magenta
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].color=color.magenta
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].color=color.magenta
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].color=color.magenta
+button(bind=Magenta,text='Magenta',color=color.black,background=color.magenta,pos=scene.title_anchor)
+
+# Colour purple (Button):
+def Purple(x):
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].color=color.purple    
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].color=color.purple
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].color=color.purple
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].color=color.purple
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].color=color.purple
+button(bind=Purple,text='Purple',color=color.black,background=color.purple,pos=scene.title_anchor)
+
+# Function For Axis Picker:
+def Object_Axis_Function():
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z)
+        Cube[Cube_Counter-1].length=Object_Length
+        Cube[Cube_Counter-1].height=Object_Height     
+        Cube[Cube_Counter-1].width=Object_Width  
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z) 
+        Ring[Ring_Counter-1].length=Object_Length     
+        Ring[Ring_Counter-1].height=Object_Height     
+        Ring[Ring_Counter-1].width=Object_Width  
+        Ring[Ring_Counter-1].radius=Object_Radius
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z)
+        Cylinder[Cylinder_Counter].length=Object_Length
+        Cylinder[Cylinder_Counter-1].radius=Object_Radius
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].axis=vector(Object_axis_X,Object_axis_Y,Object_axis_Z) 
+        Pyramid[Pyramid_Counter-1].length=Object_Length     
+        Pyramid[Pyramid_Counter-1].height=Object_Height     
+        Pyramid[Pyramid_Counter-1].width=Object_Width 
+
+# Axis Picker (Drop Down Menu):
+def Axis(x):
+    if x.selected=='Right':
+        global Object_axis_X
+        global Object_axis_Y
+        global Object_axis_Z
+        Object_axis_X=1
+        Object_axis_Y=0
+        Object_axis_Z=0
+        Object_Axis_Function()
+    if x.selected=='Left':
+        Object_axis_X=-1
+        Object_axis_Y=0
+        Object_axis_Z=0        
+        Object_Axis_Function()
+    if x.selected=='Up':
+        Object_axis_X=0
+        Object_axis_Y=1
+        Object_axis_Z=0
+        Object_Axis_Function()
+    if x.selected=='Down':
+        Object_axis_X=0
+        Object_axis_Y=-1
+        Object_axis_Z=0        
+        Object_Axis_Function()
+    if x.selected=='Forward':
+        Object_axis_X=0
+        Object_axis_Y=0
+        Object_axis_Z=1
+        Object_Axis_Function()
+    if x.selected=='Backward':
+        Object_axis_X=0
+        Object_axis_Y=0
+        Object_axis_Z=-1       
+        Object_Axis_Function()
+    if x.selected=='Up,R':
+        Object_axis_X=1
+        Object_axis_Y=1
+        Object_axis_Z=0
+        Object_Axis_Function()
+    if x.selected=='Up,L':
+        Object_axis_X=-1
+        Object_axis_Y=1
+        Object_axis_Z=0
+        Object_Axis_Function()
+    if x.selected=='Up,F':
+        Object_axis_X=0
+        Object_axis_Y=1
+        Object_axis_Z=1
+        Object_Axis_Function()
+    if x.selected=='Up,B':
+        Object_axis_X=0
+        Object_axis_Y=1
+        Object_axis_Z=-1
+        Object_Axis_Function()
+    if x.selected=='Down,R':
+        Object_axis_X=1
+        Object_axis_Y=-1
+        Object_axis_Z=0
+        Object_Axis_Function()
+    if x.selected=='Down,L':
+        Object_axis_X=-1
+        Object_axis_Y=-1
+        Object_axis_Z=0
+        Object_Axis_Function()
+    if x.selected=='Down,F':
+        Object_axis_X=0
+        Object_axis_Y=-1
+        Object_axis_Z=1
+        Object_Axis_Function()
+    if x.selected=='Down,B':
+        Object_axis_X=0
+        Object_axis_Y=-1
+        Object_axis_Z=-1
+        Object_Axis_Function()
+menu(bind=Axis,choices=['Right','Left','Up','Down','Forward','Backward','Up,R','Up,L','Up,F',
+                            'Up,B','Down,R','Down,L','Down,F','Down,B'],pos=scene.title_anchor)
+
+# Radius Picker (Drop Down Menu):
+def Radius(x):
+    for i in range (0,16,1):
+        j=i+1
+        if x.selected==('Radius:'+str(j)):
+            Object_Radius=j
+            if Last_Picked_Sphere == True:
+                Sphere[Sphere_Counter-1].radius=Object_Radius
+            if Last_Picked_Ring == True:
+                Ring[Ring_Counter-1].radius=Object_Radius
+            if Last_Picked_Cylinder == True:
+                Cylinder[Cylinder_Counter-1].radius=Object_Radius    
+menu(bind=Radius,choices=['Radius:1','Radius:2','Radius:3','Radius:4','Radius:5','Radius:6','Radius:7','Radius:8','Radius:9',
+                            'Radius:10','Radius:11','Radius:12','Radius:13','Radius:14','Radius:15'],pos=scene.title_anchor)
+
+# Length Picker (Drop Down Menu):
+def Length(x):
+    for i in range (0,16,1):
+        j=i+1
+        if x.selected==('Length:'+str(j)):
+            Object_Length=j
+            if Last_Picked_Cube == True:
+                Cube[Cube_Counter-1].length=Object_Length
+            if Last_Picked_Cylinder == True:
+                Cylinder[Cylinder_Counter-1].length=Object_Length
+            if Last_Picked_Ring == True:
+                Ring[Ring_Counter].length=Object_Length
+            if Last_Picked_Pyramid == True:
+                Pyramid[Pyramid_Counter].length=Object_Length 
+menu(bind=Length,choices=['Length:1','Length:2','Length:3','Length:4','Length:5','Length:6','Length:7','Length:8','Length:9',
+                            'Length:10','Length:11','Length:12','Length:13','Length:14','Length:15'],pos=scene.title_anchor)
+
+# Height Picker (Drop Down Menu):
+def Height(x):
+    for i in range (0,16,1):
+        j=i+1
+        if x.selected==('Height:'+str(j)):
+            Object_Height=j
+            if Last_Picked_Cube == True:
+                Cube[Cube_Counter-1].height=Object_Height
+            if Last_Picked_Ring == True:
+                Ring[Ring_Counter-1].height=Object_Height
+            if Last_Picked_Pyramid == True:
+                Pyramid[Pyramid_Counter-1].height=Object_Height
+menu(bind=Height,choices=['Height:1','Height:2','Height:3','Height:4','Height:5','Height:6','Height:7','Height:8','Height:9',
+                            'Height:10','Height:11','Height:12','Height:13','Height:14','Height:15'],pos=scene.title_anchor)
+
+# Width Picker (Drop Down Menu):
+def Width(x):
+    for i in range (0,16,1):
+        j=i+1
+        if x.selected==('Width:'+str(j)):
+            Object_Width=j
+            if Last_Picked_Cube == True:
+                Cube[Cube_Counter-1].width=Object_Width
+            if Last_Picked_Ring == True:
+                Ring[Ring_Counter-1].width=Object_Width
+            if Last_Picked_Pyramid == True:
+                Pyramid[Pyramid_Counter-1].width=Object_Width 
+menu(bind=Width,choices=['Width:1','Width:2','Width:3','Width:4','Width:5','Width:6','Width:7','Width:8','Width:9',
+                            'Width:10','Width:11','Width:12','Width:13','Width:14','Width:15'],pos=scene.title_anchor)
+
+# X Position (Slider):
+wtext(text='X Pos')
+def Object_X_Position(x):
+    global X_Position
+    X_Position=x.value
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)    
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+X_Slider=slider(bind=Object_X_Position,verticle=False,min=-25,max=25,value=0)
+
+# Y Position (Slider):
+wtext(text='Y Pos')
+def Object_Y_Position(y):
+    global Y_Position
+    Y_Position=y.value
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+Y_Slider=slider(bind=Object_Y_Position,verticle=False,min=-25,max=25,value=0)
+
+# Z Position (Slider):
+wtext(text='Z Pos')
+def Object_Z_Position(y):
+    global Z_Position
+    Z_Position=y.value
+    if Last_Picked_Sphere == True:
+        Sphere[Sphere_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Cube == True:
+        Cube[Cube_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Ring == True:
+        Ring[Ring_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Cylinder == True:
+        Cylinder[Cylinder_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+    if Last_Picked_Pyramid == True:
+        Pyramid[Pyramid_Counter-1].pos=vector(X_Position,Y_Position,Z_Position)
+Z_Slider=slider(bind=Object_Z_Position,verticle=False,min=-25,max=25,value=0)
+
+# Intro:
+if Intro == False:
+    scene.autoscale = False
+    for i in range (-20,14,1):
+        if i > -20:
+            Intro_Message.visible=False
+        Intro_Message = text(text='Welcome To',align='center',pos=vector(0,0,i),color=color.cyan,visible=True)
+    sleep(.5)
+    Intro_Message.visible=False
+    for i in range (14,18,1):
+        Intro_Message = text(text='Welcome To',align='center',pos=vector(0,0,i),color=color.cyan,visible=True)
+        Intro_Message.visible=False
+    for i in range (-20,14,1):
+        Intro_Message.visible=False
+        Intro_Message = text(text='vPython Build',align='center',pos=vector(0,0,i),color=color.green,visible=True)
+    sleep(2)
+    Intro_Message.visible=False
+    for i in range (14,18,1):
+        Intro_Message = text(text='vPython Build',align='center',pos=vector(0,0,i),color=color.green,visible=True)
+        Intro_Message.visible=False
+    for i in range (-20,14,1):
+        Intro_Message.visible=False
+        Intro_Message = text(text='Produced By',align='center',pos=vector(0,0,i),color=color.cyan,visible=True)
+    sleep(.5)
+    Intro_Message.visible=False
+    for i in range (14,18,1):
+        Intro_Message = text(text='Produced By',align='center',pos=vector(0,0,i),color=color.cyan,visible=True)
+        Intro_Message.visible=False
+    for i in range (-20,14,1):
+        Intro_Message.visible=False
+        Intro_Message = text(text='BigBogeyFace',align='center',pos=vector(0,0,i),color=color.green,visible=True)
+    sleep(1)
+    Intro_Message.visible=False
+    for i in range (14,18,1):
+        Intro_Message = text(text='BigBogeyFace',align='center',pos=vector(0,0,i),color=color.green,visible=True)
+        Intro_Message.visible=False
+    for i in range (-20,14,1):
+        Intro_Message.visible=False
+        Intro_Message = text(text='Many Thanks',align='center',pos=vector(0,0,i),color=color.cyan,visible=True)
+    sleep(.5)
+    Intro_Message.visible=False
+    for i in range (14,18,1):
+        Intro_Message = text(text='Many Thanks',align='center',pos=vector(0,0,i),color=color.cyan,visible=True)
+        Intro_Message.visible=False
+    for i in range (-20,12,1):
+        Intro_Message.visible=False
+        Intro_Message = text(text='To\nMr Paul McWhorter',align='center',pos=vector(0,0,i),color=color.green,visible=True)
+    sleep(1)
+    Intro_Message.visible=False
+    for i in range (12,18,1):
+        Intro_Message = text(text='To\nMr Paul McWhorter',align='center',pos=vector(0,0,i),color=color.green,visible=True)
+        Intro_Message.visible=False
+    for i in range (-20,18,1):
+        Intro_Message.visible=False
+        Intro_Message = text(text='Enjoy',align='center',pos=vector(0,0,i),color=color.yellow,visible=True)
+    Intro_Message.visible=False
+    scene.autoscale = True
+    Intro = True
+
+# Begin Program Loop:
+while True:
+    pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+# Many Thanks To Mr Paul McWhorter For His Most Excellent YouTube Tutorials.
+# Please Check The Description Below For A Link To His Channel.
+# Like And Subscribe For More Content...
