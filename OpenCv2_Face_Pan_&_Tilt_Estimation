@@ -1,0 +1,208 @@
+
+# Face Pan And Tilt Estimation By BigBogeyFace
+
+# Import Essentials:
+import cv2
+import numpy
+import time
+
+# Window Frame Dimensions: 
+Frame_Width=1280
+Frame_Height=720
+
+# Camera Setup:
+Camera=cv2.VideoCapture(0,cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT,Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+Camera.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc(*'MJPG'))
+
+# Colours:
+Red=(0,0,255)
+Green=(0,255,0)
+Blue=(255,0,0)
+Cyan=(255,255,0)
+Purple=(255,0,255)
+Yellow=(0,255,255)
+White=(255,255,255)
+Black=(0,0,0)
+Weighted_Colour=(100,0,0)
+
+# Text Global Variables:
+Font_Size=.5
+Font_Thickness=1
+Font = cv2.FONT_HERSHEY_TRIPLEX
+Weighted_Colour=(100,0,0)
+Line_Thickness=4
+Circle_Diameter=int(Frame_Width*.04)
+
+# MediaPipe_Face_Mesh Class:
+class MediaPipe_Face_Mesh:
+    import mediapipe
+    def __init__(self,Still_Image=False,Number_Of_Faces=1,Tolerance_One=.5,Tolerance_Two=.5,Draw_Mesh=True):
+        self.My_Face_Mesh=self.mediapipe.solutions.face_mesh.FaceMesh(Still_Image,Number_Of_Faces,Tolerance_One,Tolerance_Two)
+        self.My_Draw=self.mediapipe.solutions.drawing_utils
+        self.Draw=Draw_Mesh
+
+    # Marks Method:
+    def Marks(self,Frame):
+        global Frame_Width
+        global Frame_Height
+        Frame_RGB=cv2.cvtColor(Frame,cv2.COLOR_BGR2RGB)
+        Results=self.My_Face_Mesh.process(Frame_RGB)
+        Faces_Mesh_Landmarks=[]
+        if Results.multi_face_landmarks != None:
+            for Face_Mesh in Results.multi_face_landmarks:
+                Face_Mesh_Landmarks=[]
+                for LandMark_Data in Face_Mesh.landmark:
+                    Location=(int(LandMark_Data.x*Frame_Width),int(LandMark_Data.y*Frame_Height))
+                    Face_Mesh_Landmarks.append(Location)
+                Faces_Mesh_Landmarks.append(Face_Mesh_Landmarks)
+                if self.Draw==True:
+                    self.My_Draw.draw_landmarks(Frame,Face_Mesh)
+        return Faces_Mesh_Landmarks
+
+# Find_Face_Mesh Object:
+Find_Face_Mesh=MediaPipe_Face_Mesh(Draw_Mesh=False)
+
+# Setup Fps Reading:
+Last_Time=time.time()
+Fps_Filter=30
+time.sleep(.1)
+
+# Begin Program Loop:
+while True:
+
+    # Start Fps Timer:
+    Frame_Time=time.time()-Last_Time
+    Last_Time=time.time()
+    Fps=1/Frame_Time
+    Fps_Filter=Fps_Filter*.97+Fps*.03
+
+    # Setup:
+    Got_Pan_Data = False
+    Got_Tilt_Data = False 
+    Face_Detected = False
+    
+    # Manage Frame:
+    ignore,Frame=Camera.read()
+    Frame=cv2.resize(Frame,(Frame_Width,Frame_Height))
+    Frame=cv2.flip(Frame,1)
+
+    # Get Face Mesh Data:
+    Faces_Mesh_LandMarks=Find_Face_Mesh.Marks(Frame)
+    for LandMark_Data in Faces_Mesh_LandMarks:
+        Face_Detected=True
+
+        # Unpack Data:
+        Ax,Ay=LandMark_Data[93]
+        Bx,By=LandMark_Data[151]
+        Cx,Cy=LandMark_Data[323]
+        Dx,Dy=LandMark_Data[152]
+        Ex,Ey=LandMark_Data[4]
+
+        # Pan Differentials:
+        Ax_Diff=Ex-Ax
+        Cx_Diff=Cx-Ex
+        ACx_Diff=Cx-Ax
+        ACx_Div=int(ACx_Diff/2)
+        Pan_Degree=ACx_Diff/90
+
+        # Tilt Differentials:
+        By_Diff=Ey-By
+        Dy_Diff=Dy-Ey
+        BDy_Diff=Dy-By
+        BDy_Div=int(BDy_Diff/2)
+        Tilt_Degree=BDy_Diff/180
+
+        # Estimate Pan Angle:
+        if Ax_Diff<ACx_Div:
+            Pan=0-int(45-(Ax_Diff/Pan_Degree))
+            Got_Pan_Data = True
+        if Cx_Diff<ACx_Div:
+            Pan=0+int(45-(Cx_Diff/Pan_Degree))
+            Got_Pan_Data = True
+        if Ex<Ax:
+            Pan="Out Of Bounds"    
+            Got_Pan_Data = True    
+        if Ex>Cx:
+            Pan="Out Of Bounds"
+            Got_Pan_Data = True
+
+        # Estimate Tilt Angle:
+        if By_Diff<BDy_Div:
+            Tilt=0-int(90-(Dy_Diff/Tilt_Degree))
+            Got_Tilt_Data = True 
+        if Dy_Diff<BDy_Div:
+            Tilt=0+int(90-(By_Diff/Tilt_Degree))
+            Got_Tilt_Data = True 
+        if Ey<By:
+            Tilt="Out Of Bounds"  
+            Got_Tilt_Data = True 
+        if Ey>Dy:
+            Tilt="Out Of Bounds"
+            Got_Tilt_Data = True 
+
+    # Frame Aesthetics:
+    Gray_Frame=cv2.cvtColor(Frame,cv2.COLOR_BGR2GRAY)
+    Was_Gray_Frame=cv2.cvtColor(Gray_Frame,cv2.COLOR_GRAY2BGR)
+    Text_BackGround=numpy.zeros([Frame_Height,Frame_Width,3],dtype=numpy.uint8)
+    cv2.rectangle(Text_BackGround,(0,0),(int(Frame_Width*.22),int(Frame_Height*.22)),(Weighted_Colour),-1)
+
+    # Graphic:
+    cv2.circle(Text_BackGround,(int(Frame_Width*.92),int(Frame_Height*.13)),Circle_Diameter,(Weighted_Colour),Line_Thickness)
+    cv2.line(Text_BackGround,(int(Frame_Width*.92)-Circle_Diameter-int(Circle_Diameter/4),int(Frame_Height*.13)),
+    (int(Frame_Width*.92)+Circle_Diameter+int(Circle_Diameter/4),int(Frame_Height*.13)),(Weighted_Colour),Line_Thickness)
+    cv2.line(Text_BackGround,(int(Frame_Width*.92),int(Frame_Height*.13)-Circle_Diameter-int(Circle_Diameter/4)),
+    (int(Frame_Width*.92),int(Frame_Height*.13)+Circle_Diameter+int(Circle_Diameter/4)),(Weighted_Colour),Line_Thickness)
+    Display_Frame=cv2.addWeighted(Was_Gray_Frame,.5,Text_BackGround,1,1)
+
+    # Display Data On Frame:
+    cv2.putText(Display_Frame,"Head Pan & Tilt Estimation:",(int(Frame_Width*.01),int(Frame_Height*.04)),Font,Font_Size,White,Font_Thickness)
+    cv2.putText(Display_Frame,"Pan = ",(int(Frame_Width*.01),int(Frame_Height*.08)),Font,Font_Size,White,Font_Thickness)
+    cv2.putText(Display_Frame,"Tilt = ",(int(Frame_Width*.01),int(Frame_Height*.12)),Font,Font_Size,White,Font_Thickness)
+    if Got_Pan_Data == True:
+        cv2.putText(Display_Frame,"Pan = "+str(Pan),(int(Frame_Width*.01),int(Frame_Height*.08)),Font,Font_Size,White,Font_Thickness)
+    if Got_Tilt_Data == True:
+        cv2.putText(Display_Frame,"Tilt = "+str(Tilt),(int(Frame_Width*.01),int(Frame_Height*.12)),Font,Font_Size,White,Font_Thickness)
+    cv2.putText(Display_Frame,'Fps = '+str(int(Fps_Filter)),(int(Frame_Width*.01),int(Frame_Height*.16)),Font,Font_Size,White,Font_Thickness)
+    cv2.putText(Display_Frame,"Press Q To Quit",(int(Frame_Width*.01),int(Frame_Height*.20)),Font,Font_Size,White,Font_Thickness)
+
+    # Display (For Development Purposes Only):
+#    if Face_Detected == True:
+#        cv2.putText(Display_Frame,("A"),(LandMark_Data[93]),Font,Font_Size,Red,Font_Thickness) 
+#        cv2.putText(Display_Frame,("B"),(LandMark_Data[151]),Font,Font_Size,Green,Font_Thickness)
+#        cv2.putText(Display_Frame,("C"),(LandMark_Data[323]),Font,Font_Size,Blue,Font_Thickness)
+#        cv2.putText(Display_Frame,("D"),(LandMark_Data[152]),Font,Font_Size,Yellow,Font_Thickness)
+#        cv2.putText(Display_Frame,("E"),(LandMark_Data[4]),Font,Font_Size,Cyan,Font_Thickness)
+
+    # Display Window:
+    cv2.imshow('Camera Frame Window',Display_Frame)
+    cv2.moveWindow('Camera Frame Window',0,0)
+
+    # Setup Key Checks:
+    Pressed_Key = cv2.waitKey(1) & 0xFF
+
+    # Q To Quit:
+    if Pressed_Key == ord('q'):
+        break
+Camera.release()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Many Thanks To Mr Paul McWhorter For His Most Excellent YouTube Tutorials.
+# Please Check The Description Below For A Link To His Channel.
+# Like And Subscribe For More Content...
