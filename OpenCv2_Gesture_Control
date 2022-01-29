@@ -1,0 +1,264 @@
+# Gesture Recognition By Big Bogey Face
+
+# Import Open cv2 Library
+import cv2
+import time
+
+# Frame Dimension Perameters:
+Frame_Width=1020
+Frame_Height=int(Frame_Width/16*9) # (574)
+
+# Colours:
+Black=(0,0,0)
+Red=(0,0,255)
+Purple=(255,0,255)
+Blue=(255,0,0)
+Cyan=(255,255,0)
+Green=(0,255,0)
+Yellow=(0,255,255)
+White=(255,255,255)
+
+# Lines
+Line_Thickness=5
+Radius=20
+Solid=-1
+
+# Hands:
+One_Hand=1
+Two_Hands=2
+
+# Text:
+Font_Size=1
+Font_Thickness=2
+Information_Font_Size=2
+
+# Information Window Size:
+Upper_Left=(25,499) # (X,Y)
+Lower_Right=(995,549)
+
+# Generate Class:
+class mpHands:
+    import mediapipe as mp
+    def __init__(self,Max_Hands=2,Tolerance_1=.5,Tolerance_2=.5):
+        self.hands=self.mp.solutions.hands.Hands(False,Max_Hands,Tolerance_1,Tolerance_2)
+
+    # Marks Method (A Method Is A Function Inside Of A Class):
+    def Marks(self,Frame):
+        My_Hands=[]
+        Frmae_RGB=cv2.cvtColor(Frame,cv2.COLOR_BGR2RGB)
+        Results=self.hands.process(Frmae_RGB)
+        if Results.multi_hand_landmarks != None:
+            for Hand_Land_Marks in Results.multi_hand_landmarks:
+                My_Hand=[]
+                for Land_Mark in Hand_Land_Marks.landmark:
+                    My_Hand.append((int(Land_Mark.x*Frame_Width),int(Land_Mark.y*Frame_Height)))
+                My_Hands.append(My_Hand)
+        return My_Hands
+
+# Generate Object:
+Find_Hands=mpHands(One_Hand)
+
+# Setup Camera:
+Camera=cv2.VideoCapture(0,cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH,Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT,Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+Camera.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc(*'MJPG'))
+
+# Initialise Frames Per Second Timer:
+tLast=time.time()
+fpsFilt=30
+time.sleep(.1)
+
+# Begin Program Loop:
+while True:
+
+    # Calculate Frames Per Second:
+    dt=time.time()-tLast
+    tLast=time.time()
+    fps=1/dt
+    fpsFilt=fpsFilt*.97+fps*.03
+
+    # Collect Frame:
+    Ignore,Frame=Camera.read()
+    cv2.rectangle(Frame,(0,0),(Frame_Width,Frame_Height),White,Line_Thickness) 
+
+    # Invert Frame Horizontally:
+    Frame=cv2.flip(Frame,1)
+
+    # Gesture Variable:
+    Gesture="None"
+
+    # Collect All Hand Data:
+    Hand_Data=Find_Hands.Marks(Frame)
+
+    # Collect Specified Hand Data:
+    for Hand in Hand_Data:
+        for Find in [2,4,5,8,9,12,13,16,17,20]:
+            Thumb_Metacarpophalangeal_Joint=Hand[2]
+            Thumb_Tip=Hand[4]
+            Index_Finger_Metacarpophalangeal_Joint=Hand[5]
+            Index_Finger_Tip=Hand[8]
+            Middle_Finger_Metacarpophalangeal_Joint=Hand[9]
+            Middle_Finger_Tip=Hand[12]
+            Ring_Finger_Metacarpophalangeal_Joint=Hand[13]
+            Ring_Finger_Tip=Hand[16]
+            Little_Finger_Metacarpophalangeal_Joint=Hand[17]
+            Little_Finger_Tip=Hand[20]
+
+            # Unpack Data:
+            (TMJX,TMJY)=Thumb_Metacarpophalangeal_Joint
+            (TTX,TTY)=Thumb_Tip
+            (IFMJX,IFMJY)=Index_Finger_Metacarpophalangeal_Joint
+            (IFTX,IFTY)=Index_Finger_Tip
+            (MFMJX,MFMJY)=Middle_Finger_Metacarpophalangeal_Joint
+            (MFTX,MFTY)=Middle_Finger_Tip
+            (RFMJX,RFMJY)=Ring_Finger_Metacarpophalangeal_Joint
+            (RFTX,RFTY)=Ring_Finger_Tip
+            (LFMJX,LFMJY)=Little_Finger_Metacarpophalangeal_Joint
+            (LFTX,LFTY)=Little_Finger_Tip
+
+            # Display Specified Data (For Training Purposes):
+            cv2.circle(Frame,Thumb_Metacarpophalangeal_Joint,Radius,Red,Solid)
+            cv2.putText(Frame,'TMJ',(int(TMJX-Radius+Radius/4),TMJY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,Black,Font_Thickness)
+            cv2.circle(Frame,Thumb_Tip,Radius,Black,Solid)
+            cv2.putText(Frame,'TT',(int(TTX-Radius+Radius/2),TTY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,White,Font_Thickness)
+            cv2.circle(Frame,Index_Finger_Metacarpophalangeal_Joint,Radius,Purple,Solid)
+            cv2.putText(Frame,'IFMJ',(int(IFMJX-Radius+Radius/4),IFMJY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,Black,Font_Thickness)
+            cv2.circle(Frame,Index_Finger_Tip,Radius,Black,Solid)
+            cv2.putText(Frame,'IFT',(int(IFTX-Radius+int(Radius/2.5)),IFTY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,White,Font_Thickness)
+            cv2.circle(Frame,Middle_Finger_Metacarpophalangeal_Joint,Radius+int(Radius/4),Green,Solid)
+            cv2.putText(Frame,'MFMJ',(int(MFMJX-Radius),MFMJY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,Black,Font_Thickness)
+            cv2.circle(Frame,Middle_Finger_Tip,Radius,Black,Solid)
+            cv2.putText(Frame,'MFT',(int(MFTX-Radius+Radius/4),MFTY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,White,Font_Thickness)
+            cv2.circle(Frame,Ring_Finger_Metacarpophalangeal_Joint,Radius,Yellow,Solid)
+            cv2.putText(Frame,'RFMJ',(int(RFMJX-Radius+Radius/4),RFMJY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,Black,Font_Thickness)
+            cv2.circle(Frame,Ring_Finger_Tip,Radius,Black,Solid)
+            cv2.putText(Frame,'RFT',(int(RFTX-Radius+Radius/4),RFTY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,White,Font_Thickness)
+            cv2.circle(Frame,Little_Finger_Metacarpophalangeal_Joint,Radius,Blue,Solid)
+            cv2.putText(Frame,'LFMJ',(int(LFMJX-Radius+Radius/4),LFMJY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,Black,Font_Thickness)
+            cv2.circle(Frame,Little_Finger_Tip,Radius,Black,Solid)
+            cv2.putText(Frame,'LFT',(int(LFTX-Radius+Radius/4),LFTY+int(Radius/2)-(Font_Size*4)),cv2.FONT_HERSHEY_PLAIN,Font_Size,White,Font_Thickness)
+
+            # Positions Extension Threshold:
+            Extension_Threshold=50
+
+            # Thumb Positions:
+            Thumb_Out_Right=TTX-IFMJX>Extension_Threshold
+            Thumb_Out_Left=IFMJX-TTX>Extension_Threshold
+            Thumb_Up=IFMJY-TTY>Extension_Threshold
+            Thumb_Down=TTY-IFMJY>Extension_Threshold
+            Thumb_In=(TTX-IFMJX<Extension_Threshold and IFMJX-TTX<Extension_Threshold and IFMJY-TTY<Extension_Threshold and TTY-IFMJY<Extension_Threshold
+            or TTX-MFMJX<Extension_Threshold and MFMJX-TTX<Extension_Threshold and MFMJY-TTY<Extension_Threshold and TTY-MFMJY<Extension_Threshold
+            or TTX-RFMJX<Extension_Threshold and RFMJX-TTX<Extension_Threshold and RFMJY-TTY<Extension_Threshold and TTY-RFMJY<Extension_Threshold)
+
+            # Index Finger Positions:
+            Index_Finger_Up=IFMJY-IFTY>Extension_Threshold
+            Index_Finger_Down=IFTY-IFMJY>Extension_Threshold
+            Index_Finger_Right=IFTX-IFMJX>Extension_Threshold
+            Index_Finger_Left=IFMJX-IFTX>Extension_Threshold
+            Index_Finger_In=IFMJY-IFTY<Extension_Threshold and IFTY-IFMJY<Extension_Threshold and IFTX-IFMJX<Extension_Threshold and IFMJX-IFTX<Extension_Threshold
+
+            # Middle Finger Positions:
+            Middle_Finger_Up=MFMJY-MFTY>Extension_Threshold
+            Middle_Finger_Down=MFTY-MFMJY>Extension_Threshold
+            Middle_Finger_Right=MFTX-MFMJX>Extension_Threshold
+            Middle_Finger_Left=MFMJX-MFTX>Extension_Threshold
+            Middle_Finger_In=MFMJY-MFTY<Extension_Threshold and MFTY-MFMJY<Extension_Threshold and MFTX-MFMJX<Extension_Threshold and MFMJX-MFTX<Extension_Threshold
+
+            # Ring Finger Positions:
+            Ring_Finger_Up=RFMJY-RFTY>Extension_Threshold
+            Ring_Finger_Down=RFTY-RFMJY>Extension_Threshold
+            Ring_Finger_Right=RFTX-RFMJX>Extension_Threshold
+            Ring_Finger_Left=RFMJX-RFTX>Extension_Threshold
+            Ring_Finger_In=RFMJY-RFTY<Extension_Threshold and RFTY-RFMJY<Extension_Threshold and RFTX-RFMJX<Extension_Threshold and RFMJX-RFTX<Extension_Threshold
+
+            # Little Finger Positions:
+            Little_Finger_Up=LFMJY-LFTY>Extension_Threshold
+            Little_Finger_Down=LFTY-LFMJY>Extension_Threshold
+            Little_Finger_Right=LFTX-LFMJX>Extension_Threshold
+            Little_Finger_Left=LFMJX-LFTX>Extension_Threshold
+            Little_Finger_In=LFMJY-LFTY<Extension_Threshold and LFTY-LFMJY<Extension_Threshold and LFTX-LFMJX<Extension_Threshold and LFMJX-LFTX<Extension_Threshold
+
+            # Gestures:
+            if Thumb_Out_Right and Index_Finger_Up and Middle_Finger_Up and Ring_Finger_Up and Little_Finger_Up:
+                Gesture="5"
+            if Thumb_In and Index_Finger_Up and Middle_Finger_Up and Ring_Finger_Up and Little_Finger_Up:
+                Gesture="4"            
+            if Thumb_In and Index_Finger_In and Middle_Finger_Up and Ring_Finger_Up and Little_Finger_Up:
+                Gesture="3"
+            if Thumb_In and Index_Finger_In and Middle_Finger_In and Ring_Finger_Up and Little_Finger_Up:
+                Gesture="2"
+            if Thumb_In and Index_Finger_In and Middle_Finger_In and Ring_Finger_In and Little_Finger_Up:
+                Gesture="1"
+            if (Thumb_Out_Left and Index_Finger_In and Middle_Finger_In and Ring_Finger_In and Little_Finger_In 
+            or Thumb_Out_Right and Index_Finger_In and Middle_Finger_In and Ring_Finger_In and Little_Finger_In):
+                Gesture="Hitch Hiking"
+            if Thumb_Down and Index_Finger_In and Middle_Finger_In and Ring_Finger_In and Little_Finger_In:
+                Gesture="Thumbs Down"
+            if Little_Finger_In and Ring_Finger_In and Middle_Finger_In and Index_Finger_Right and Thumb_In:
+                Gesture="Pointing Right"
+            if Little_Finger_In and Ring_Finger_In and Middle_Finger_In and Index_Finger_Up and Thumb_In:
+                Gesture="Pointing Up"
+            if Little_Finger_In and Ring_Finger_In and Middle_Finger_In and Index_Finger_Left and Thumb_In:
+                Gesture="Pointing Left"
+            if Little_Finger_In and Ring_Finger_In and Middle_Finger_In and Index_Finger_Down and Thumb_In:
+                Gesture="Pointing Down"    
+            if Thumb_Up and Index_Finger_Right and Middle_Finger_Right and Ring_Finger_In and Little_Finger_In:
+                Gesture="Hand Gun"    
+            if (Thumb_Out_Left and Index_Finger_In and Middle_Finger_In and Ring_Finger_In and Little_Finger_Right 
+            or Thumb_Out_Right and Index_Finger_In and Middle_Finger_In and Ring_Finger_In and Little_Finger_Left):
+                Gesture="No Worries"  
+            if Little_Finger_In and Ring_Finger_In and Middle_Finger_In and Index_Finger_In and Thumb_In and TMJX>RFMJX:
+                Gesture="Power To The People"
+            if Little_Finger_In and Ring_Finger_In and Middle_Finger_Up and Index_Finger_Up and Thumb_In:
+                Gesture="Peace" 
+            if Thumb_Up and Index_Finger_In and Middle_Finger_In and Ring_Finger_In and Little_Finger_Right:
+                Gesture="Call Me"
+            if Little_Finger_Up and Ring_Finger_Up and Middle_Finger_Up and Index_Finger_Right and Thumb_Out_Right:
+                Gesture="Okay"
+            if Thumb_Up and Index_Finger_In and Middle_Finger_In and Ring_Finger_In and Little_Finger_In and TMJY<LFMJY:
+                Gesture="Thumbs Up"
+
+    # Information Window:
+    cv2.rectangle(Frame,Upper_Left,Lower_Right,White,Line_Thickness) 
+    cv2.rectangle(Frame,Upper_Left,Lower_Right,Black,Solid) 
+    cv2.putText(Frame,'Gesture: ',(35,534),cv2.FONT_HERSHEY_PLAIN,Information_Font_Size,White,Font_Thickness)
+
+    # Display Specific Gesture Text:
+    cv2.putText(Frame,(Gesture),(185,534),cv2.FONT_HERSHEY_PLAIN,Information_Font_Size,White,Font_Thickness)
+
+    # Display Frames Per Second:
+    cv2.rectangle(Frame,(25,25),(155,75),White,Line_Thickness)
+    cv2.rectangle(Frame,(25,25),(155,75),Black,-1)
+    cv2.putText(Frame,str(int(fpsFilt))+' fps',(35,60,),cv2.FONT_HERSHEY_COMPLEX,Font_Size,White,Font_Thickness)
+
+    # Show frame:
+    cv2.imshow('1',Frame)
+    cv2.moveWindow('1',0,0)
+
+    # Check For "Q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Many Thanks To Mr Paul McWhorter For His Most Excellent YouTube Tutorials.
+# Please Check The Description Below For A Link To His Channel.
+# Like And Subscribe For More Content...
