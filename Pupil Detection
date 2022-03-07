@@ -1,0 +1,187 @@
+
+# Pupil Detection By BigBogeyFace:
+
+# Import cv2 Module:
+import cv2
+import numpy
+
+# Window Setup:
+Frame_Width=1280
+Frame_Height=720
+
+# Weighted Frame Setup:
+Weighted_Frame_Width=1280
+Weighted_Frame_Height=720
+
+# Camera Setup:
+cam=cv2.VideoCapture(0,cv2.CAP_DSHOW)
+cam.set(cv2.CAP_PROP_FRAME_WIDTH,Frame_Width)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT,Frame_Height)
+cam.set(cv2.CAP_PROP_FPS, 30)
+
+# Colours:
+Red=(0,0,255)
+Dark_Red=(0,0,127)
+Green=(0,255,0)
+Dark_Green=(0,127,0)
+Blue=(255,0,0)
+Dark_Blue=(127,0,0)
+Cyan=(255,255,0)
+Dark_Cyan=(127,127,0)
+Purple=(255,0,255)
+Dark_Purple=(127,0,127)
+Yellow=(0,255,255)
+Dark_Yellow=(0,127,127)
+White=(255,255,255)
+Gray=(127,127,127)
+Black=(0,0,0)
+
+# Text Variables:
+Font=cv2.FONT_HERSHEY_SIMPLEX
+Font_Color=Black
+Font_Size=.3
+Font_Thickness=1
+
+# Global Variables:
+Kernel_Size=21
+Sigma=0
+Resolution_Ratio=1.2
+Minimum_Distance=100
+Sensitivity=20
+Confidence=10
+Minimum_Radius=10
+Maximum_Radius=20
+Right_Eye_Colour=Purple
+Left_Eye_Colour=Green
+Got_Right_Roi=False
+Got_Left_Roi=False
+
+# Face Mesh Class:
+class Face_Mesh:
+    import mediapipe
+    def __init__(self,Still_Image=False,Number_Of_Faces=1,Stability=.5,Confidence=.5):
+        self.Face_Mesh=self.mediapipe.solutions.face_mesh.FaceMesh(Still_Image,Number_Of_Faces,Stability,Confidence)
+
+    # Marks Method:
+    def Marks(self,Frame):
+        global Frame_Width
+        global Frame_Height
+        Frame_RGB=cv2.cvtColor(Frame,cv2.COLOR_BGR2RGB)
+        Results=self.Face_Mesh.process(Frame_RGB)
+        Faces_Mesh_Landmarks=[]
+        if Results.multi_face_landmarks != None:
+            for Face_Mesh in Results.multi_face_landmarks:
+                Face_Mesh_Landmarks=[]
+                for Landmark in Face_Mesh.landmark:
+                    Landmark_Location=(int(Landmark.x*Frame_Width),int(Landmark.y*Frame_Height))
+                    Face_Mesh_Landmarks.append(Landmark_Location)
+                Faces_Mesh_Landmarks.append(Face_Mesh_Landmarks)
+        return Faces_Mesh_Landmarks
+
+# Object Oriented Programing:
+Face_Mesh_Object=Face_Mesh()
+
+# Begin Program Loop:
+while True:
+
+    Got_Right_Roi=False  
+    Got_Left_Roi=False    
+
+    # Frame Management:
+    ignore,Frame=cam.read()
+    Frame=cv2.flip(Frame,1)
+    Gray_Frame=cv2.cvtColor(Frame,cv2.COLOR_BGR2GRAY)
+    Blur_Frame=cv2.GaussianBlur(Gray_Frame,(Kernel_Size,Kernel_Size),Sigma)
+    Invert_Bit=cv2.bitwise_not(Blur_Frame)
+    Not_Gray_Gray_Frame=cv2.cvtColor(Gray_Frame,cv2.COLOR_GRAY2BGR)
+
+    # Collect Face Mesh Landmarks:
+    All_Face_Mesh_Landmarks=Face_Mesh_Object.Marks(Frame)
+    for All_Face_Mesh_Landmarks in All_Face_Mesh_Landmarks:
+            
+            # Get Right Eye Roi co_ordinates:
+            (Right_X_West,Right_Y_West)=All_Face_Mesh_Landmarks[398]
+            (Ignore,Right_Eye_Upper_Y)=All_Face_Mesh_Landmarks[386]
+            (Right_X_East,Right_Y_East)=All_Face_Mesh_Landmarks[263]
+            (Ignore,Right_Eye_Lower_Y)=All_Face_Mesh_Landmarks[374]
+
+            # Get Left Eye Roi co_ordinates:
+            (Left_X_West,Left_Y_West)=All_Face_Mesh_Landmarks[33]
+            (Ignore,Left_Eye_Upper_Y)=All_Face_Mesh_Landmarks[159]
+            (Left_X_East,Left_Y_East)=All_Face_Mesh_Landmarks[173]
+            (Ignore,Left_Eye_Lower_Y)=All_Face_Mesh_Landmarks[145]
+
+            # Get Right Eye Roi:
+            if Right_Eye_Lower_Y>Right_Eye_Upper_Y and Right_X_East>Right_X_West:
+                Right_Roi=Invert_Bit[Right_Eye_Upper_Y:Right_Eye_Lower_Y,Right_X_West:Right_X_East]
+                Got_Right_Roi=True
+
+            # Get Left Eye Roi:
+            if Left_Eye_Lower_Y>Left_Eye_Upper_Y and Left_X_East>Left_X_West:
+                Left_Roi=Invert_Bit[Left_Eye_Upper_Y:Left_Eye_Lower_Y,Left_X_West:Left_X_East]
+                Got_Left_Roi=True
+
+            # Check Right Eye Roi Bounds:
+            if Right_X_East > Right_X_West:
+                Right_X_Center = int(((Right_X_East - Right_X_West) /2)+Right_X_West)
+            if Right_X_East < Right_X_West:
+                Right_X_Center = int(((Right_X_West - Right_X_East) /2)+Right_X_West)
+            if Right_Y_East > Right_Y_West:
+                Right_Y_Center = int(((Right_Y_East - Right_Y_West) /2)+((Right_Eye_Lower_Y-Right_Eye_Upper_Y)/2)+Right_Eye_Upper_Y)
+            if Right_Y_East < Right_Y_West:
+                Right_Y_Center = int(((Right_Y_West - Right_Y_East) /2)+((Right_Eye_Lower_Y-Right_Eye_Upper_Y)/2)+Right_Eye_Upper_Y)
+
+            # Check Left Eye Roi Bounds:
+            if Left_X_East > Left_X_West:
+                Left_X_Center = int(((Left_X_East - Left_X_West) /2)+Left_X_West)
+            if Left_X_East < Left_X_West:
+                Left_X_Center = int(((Left_X_West - Left_X_East) /2)+Left_X_West)
+            if Left_Y_East > Left_Y_West:
+                Left_Y_Center = int(((Left_Y_East - Left_Y_West) /2)+((Left_Eye_Lower_Y-Left_Eye_Upper_Y)/2)+Left_Eye_Upper_Y)
+            if Left_Y_East < Left_Y_West:
+                Left_Y_Center = int(((Left_Y_West - Left_Y_East) /2)+((Left_Eye_Lower_Y-Left_Eye_Upper_Y)/2)+Left_Eye_Upper_Y)
+
+    # Find All Circles In Right Eye Roi:
+    if Got_Right_Roi == True:
+        All_Found_Circles=cv2.HoughCircles(Right_Roi,cv2.HOUGH_GRADIENT,Resolution_Ratio,Minimum_Distance,param1=Sensitivity,
+                                            param2=Confidence,minRadius=Minimum_Radius,maxRadius=Maximum_Radius)
+        if All_Found_Circles is not None:
+            All_Found_Circles = numpy.around(All_Found_Circles)
+            for Circles in All_Found_Circles:
+                Number_Of_Circles=len(Circles)
+                for i in range (0,Number_Of_Circles,1):
+                    for Circle in Circles:
+                        (Right_Circle_X,Right_Circle_Y,Circle_Radius)=Circle
+
+                        # Right Eye Pupil Position:
+                        Right_Pupil_X=int(Right_Circle_X+Right_X_West)
+                        Right_Pupil_Y=int(Right_Circle_Y+Right_Eye_Upper_Y)
+                        cv2.circle(Not_Gray_Gray_Frame,(Right_Pupil_X,Right_Pupil_Y),int(Circle_Radius),Right_Eye_Colour,4) 
+
+    # Find All Circles In Left Eye Roi:
+    if Got_Left_Roi == True:
+        All_Found_Circles=cv2.HoughCircles(Left_Roi,cv2.HOUGH_GRADIENT,Resolution_Ratio,Minimum_Distance,param1=Sensitivity,
+                                            param2=Confidence,minRadius=Minimum_Radius,maxRadius=Maximum_Radius)
+        if All_Found_Circles is not None:
+            All_Found_Circles = numpy.around(All_Found_Circles)
+            for Circles in All_Found_Circles:
+                Number_Of_Circles=len(Circles)
+                for i in range (0,Number_Of_Circles,1):
+                    for Circle in Circles:
+                        (Left_Circle_X,Left_Circle_Y,Circle_Radius)=Circle
+
+                        # Left Eye Pupil Position:
+                        Left_Pupil_X=int(Left_Circle_X+Left_X_West)
+                        Left_Pupil_Y=int(Left_Circle_Y+Left_Eye_Upper_Y)
+                        cv2.circle(Not_Gray_Gray_Frame,(Left_Pupil_X,Left_Pupil_Y),int(Circle_Radius),Left_Eye_Colour,4) 
+
+    # Display:
+    cv2.imshow("Pupil Detection Window",Not_Gray_Gray_Frame)
+    cv2.moveWindow("Pupil Detection Window",0,0)
+
+    # Check For "q" To Quit:
+    if cv2.waitKey(1) & 0xff ==ord("q"):
+        break
+cam.release()
+ 
+ 
