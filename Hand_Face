@@ -1,0 +1,133 @@
+
+# Hand Near Face Program By Developed By BigBogeyFace For My Friend Mannat Kaur:
+
+# Import Open cv2 Library:
+import cv2
+
+# Window Setup:
+Frame_Width=1280
+Frame_Height=720
+
+# Colours:
+Red=(0,0,255)
+Green=(0,255,0)
+Blue=(255,0,0)
+White=(255,255,255)
+
+# Setup Camera:
+Camera=cv2.VideoCapture(0,cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Circles:
+Circle_Radius=10
+Circle_Thickness=4
+
+# Global Variables:
+Threshold = 100
+
+# Text:
+Text = "Warning!!!"
+Org = (int(Frame_Width/2)-200,int(Frame_Height/2))
+Font = cv2.FONT_HERSHEY_SIMPLEX
+Font_Scale = 3
+Color = Red
+Thickness = 8
+
+# Generate Class:
+class mpBodies:
+    import mediapipe as mp
+    def __init__(self):
+        self.pose=self.mp.solutions.pose.Pose(False,False,True,.5,.5)
+
+    # Marks Method:
+    def Marks(self,Frame):
+        landMarks=[]
+        FrameRGB=cv2.cvtColor(Frame,cv2.COLOR_BGR2RGB)
+        Results=self.pose.process(FrameRGB)
+        if Results.pose_landmarks != None:
+            for lm in Results.pose_landmarks.landmark:
+                landMarks.append((int(lm.x*Frame_Width),int(lm.y*Frame_Height)))
+            return landMarks
+
+# Generate Object:
+Find_Bodies=mpBodies()
+
+# Begin Program Loop:
+while True:
+
+    # Get Frame:
+    Ignore,Frame=Camera.read()
+    cv2.rectangle(Frame,(0,0),(Frame_Width,Frame_Height),White,5)
+    Frame=cv2.flip(Frame,1)
+
+    # Collect Body Data:
+    Bodies_Data=Find_Bodies.Marks(Frame)
+
+    # Only If Body Detected:
+    if Bodies_Data != None:
+
+        # For Development Purposes:
+        # cv2.circle(Frame,Bodies_Data[0],Circle_Radius,Red,Circle_Thickness)
+        # cv2.circle(Frame,Bodies_Data[15],Circle_Radius,Green,Circle_Thickness)
+        # cv2.circle(Frame,Bodies_Data[17],Circle_Radius,Green,Circle_Thickness)
+        # cv2.circle(Frame,Bodies_Data[19],Circle_Radius,Green,Circle_Thickness)
+        # cv2.circle(Frame,Bodies_Data[21],Circle_Radius,Green,Circle_Thickness)
+        # cv2.circle(Frame,Bodies_Data[16],Circle_Radius,Blue,Circle_Thickness)
+        # cv2.circle(Frame,Bodies_Data[18],Circle_Radius,Blue,Circle_Thickness)
+        # cv2.circle(Frame,Bodies_Data[20],Circle_Radius,Blue,Circle_Thickness)
+        # cv2.circle(Frame,Bodies_Data[22],Circle_Radius,Blue,Circle_Thickness)
+
+        # Unpack Data:
+        Nose_X,Nose_Y=Bodies_Data[0]
+
+        # Right Hand:
+        Right_Wrist_X,Right_Wrist_Y=Bodies_Data[15]
+        Right_Pinky_X,Right_Pinky_Y=Bodies_Data[17]
+        Right_Index_X,Right_Index_Y=Bodies_Data[19]
+        Right_Thumb_X,Right_Thumb_Y=Bodies_Data[21]
+
+        # Left Hand:
+        Left_Wrist_X,Left_Wrist_Y=Bodies_Data[16]
+        Left_Pinky_X,Left_Pinky_Y=Bodies_Data[18]
+        Left_Index_X,Left_Index_Y=Bodies_Data[20]
+        Left_Thumb_X,Left_Thumb_Y=Bodies_Data[22]
+
+        # Check If Right Hand Is Near Face:
+        if Right_Wrist_X >  Nose_X - Threshold and Right_Wrist_X < Nose_X + Threshold:
+            if Right_Wrist_Y >  Nose_Y - Threshold and Right_Wrist_Y < Nose_Y + Threshold:
+                cv2.putText(Frame,Text,Org,Font,Font_Scale,Color,Thickness,cv2.LINE_AA)
+        if Right_Pinky_X >  Nose_X - Threshold and Right_Pinky_X < Nose_X + Threshold:
+            if Right_Pinky_Y >  Nose_Y - Threshold and Right_Pinky_Y < Nose_Y + Threshold:
+                cv2.putText(Frame,Text,Org,Font,Font_Scale,Color,Thickness,cv2.LINE_AA)
+        if Right_Index_X >  Nose_X - Threshold and Right_Index_X < Nose_X + Threshold:
+            if Right_Index_Y >  Nose_Y - Threshold and Right_Index_Y < Nose_Y + Threshold:
+                cv2.putText(Frame,Text,Org,Font,Font_Scale,Color,Thickness,cv2.LINE_AA) 
+        if Right_Thumb_X >  Nose_X - Threshold and Right_Thumb_X < Nose_X + Threshold:
+            if Right_Thumb_Y >  Nose_Y - Threshold and Right_Thumb_Y < Nose_Y + Threshold:
+                cv2.putText(Frame,Text,Org,Font,Font_Scale,Color,Thickness,cv2.LINE_AA)
+
+        # Check If Left Hand Is Near Face:
+        if Left_Wrist_X >  Nose_X - Threshold and Left_Wrist_X < Nose_X + Threshold:
+            if Left_Wrist_Y >  Nose_Y - Threshold and Left_Wrist_Y < Nose_Y + Threshold:
+                cv2.putText(Frame,Text,Org,Font,Font_Scale,Color,Thickness,cv2.LINE_AA)
+        if Left_Pinky_X >  Nose_X - Threshold and Left_Pinky_X < Nose_X + Threshold:
+            if Left_Pinky_Y >  Nose_Y - Threshold and Left_Pinky_Y < Nose_Y + Threshold:
+                cv2.putText(Frame,Text,Org,Font,Font_Scale,Color,Thickness,cv2.LINE_AA)
+        if Left_Index_X >  Nose_X - Threshold and Left_Index_X < Nose_X + Threshold:
+            if Left_Index_Y >  Nose_Y - Threshold and Left_Index_Y < Nose_Y + Threshold:
+                cv2.putText(Frame,Text,Org,Font,Font_Scale,Color,Thickness,cv2.LINE_AA)   
+        if Left_Thumb_X >  Nose_X - Threshold and Left_Thumb_X < Nose_X + Threshold:
+            if Left_Thumb_Y >  Nose_Y - Threshold and Left_Thumb_Y < Nose_Y + Threshold:
+                cv2.putText(Frame,Text,Org,Font,Font_Scale,Color,Thickness,cv2.LINE_AA)
+
+    # Show Frame:
+    cv2.imshow('1',Frame)
+    cv2.moveWindow('1',0,0)
+
+    # Check For "Q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
+
