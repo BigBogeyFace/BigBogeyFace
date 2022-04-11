@@ -1,0 +1,212 @@
+
+# Horizontal Time Warp Scan By BigBogeyFace:
+
+# Imports:
+import cv2
+import numpy
+import random
+
+# Frame:
+Frame_Width = 1280
+Frame_Height = 720
+
+# Camera:
+Camera=cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Initialise Mouse Event And Position:
+Mouse_Event = 0
+Mouse_Position = (0, 0)
+
+# Mouse Click Function:
+def Mouse_Click(event, Mouse_Position_X, Mouse_Position_Y, flags, perameters):
+    global Mouse_Event
+    global Mouse_Position
+    if event == cv2.EVENT_LBUTTONDOWN:
+        Mouse_Position = (Mouse_Position_X, Mouse_Position_Y)
+        Mouse_Event = event
+
+# Initialise Window Name:
+cv2.namedWindow('Time Warp Window')
+
+# Initialise Mouse Click Event:
+cv2.setMouseCallback('Time Warp Window', Mouse_Click)
+
+# Rain Drop Globals:
+Light_Cyan = (255, 255, 0)
+Medium_Cyan = (170, 170, 0)
+Dark_Cyan = (85, 85, 0)
+Text_One = "Horizontal"
+Text_Two = "Time Warp"
+Text_Font = cv2.FONT_HERSHEY_TRIPLEX
+Text_Scale = 1
+Text_Thickness = 1
+Text_Colour = Light_Cyan
+Button_Text_Colour = Light_Cyan
+Button_Text_Scale = .7
+Close_Text_Color = Light_Cyan
+Medium_Text_Color = Medium_Cyan
+Far_Text_Color = Dark_Cyan
+Number_Of_Rain_Drops = 30
+Slow_Rain_Fall_Speed = 10
+Medium_Rain_Fall_Speed = 20
+Fast_Rain_Fall_Speed = 30
+Small_Rain_Drops = .8
+Medium_Rain_Drops = .9
+Large_Rain_Drops = 1
+Frame_Opacity = .6
+Rain_Opacity = .8
+Scalar = .4
+Time_Warp_Counter = 0
+Line_Colour = Light_Cyan
+Time_Warp = False
+Time_Warped = False
+
+# Initialise Rain Drop X Positions:
+Drop_X_Position = []
+for i in range(0, Number_Of_Rain_Drops, 1):
+    Drop_X_Position.append(random.randint(0, Frame_Width))
+
+# Initialise Rain Drop Y Positions:
+Drop_Y_Position = []
+for i in range(0, Number_Of_Rain_Drops, 1):
+    Drop_Y_Position.append(random.randint(0, Frame_Height))
+
+# Generate Time Warp Frame:
+Time_Warp_Frame = numpy.zeros([Frame_Height, Frame_Width, 3], dtype = numpy.uint8)
+
+# Begin Program Loop:
+while True:
+
+    # Initialise waitKey Function:
+    Pressed_Key = cv2.waitKey(1) & 0xFF
+
+    # Main Screen:
+    if Time_Warp == False and Time_Warped == False:
+
+        # Capture And Manage Frame:
+        Ignore, Frame = Camera.read()
+        Gray_Frame = cv2.cvtColor(Frame, cv2.COLOR_BGR2GRAY)
+        Flipped_Frame = cv2.flip(Gray_Frame, 1)
+        BGR_Gray_Frame = cv2.cvtColor(Flipped_Frame, cv2.COLOR_GRAY2BGR)
+
+        # Iterate Through Rain Drop Movement:
+        for i in range (Number_Of_Rain_Drops):
+
+            # Rain Fall Speed:
+            if int(Drop_Y_Position[i] % 3) == 0:
+                Rain_Fall_Speed = Fast_Rain_Fall_Speed
+            if int(Drop_Y_Position[i] % 3) == 1:
+                Rain_Fall_Speed = Medium_Rain_Fall_Speed
+            if int(Drop_Y_Position[i] % 3) == 2:
+                Rain_Fall_Speed = Slow_Rain_Fall_Speed
+
+            # If Rain Hits Ground:
+            if int(Drop_X_Position[i] > Frame_Width):
+                Drop_X_Position[i] = 0
+                Drop_Y_Position[i] = (random.randint(0, Frame_Height))
+
+            # Update Rain Fall Position:
+            Drop_X_Position[i] = Drop_X_Position[i] + Rain_Fall_Speed
+
+        # Generate Rain Frame:
+        Rain_Frame = numpy.zeros([Frame_Height, Frame_Width, 3], dtype = numpy.uint8)
+
+        # Iterate Through Rain Drop Attributes:
+        for i in range (Number_Of_Rain_Drops):
+
+            # Rain Anotation:
+            if (i % 3) == 0:
+                Text = Text_One
+            if (i % 3) == 1:
+                Text = Text_Two
+            if (i % 3) == 2:
+                if (i % 2) == 0:
+                    Text = Text_One
+                if (i % 2) == 1:
+                    Text = Text_Two
+
+            # Rain Drops Size:
+            if int(Drop_Y_Position[i] % 3) == 0:
+                Text_Scale = Small_Rain_Drops
+                Text_Color = Far_Text_Color
+            if int(Drop_Y_Position[i] % 3) == 1:
+                Text_Scale = Medium_Rain_Drops
+                Text_Color = Medium_Text_Color
+            if int(Drop_Y_Position[i] % 3) == 2:
+                Text_Scale = Large_Rain_Drops
+                Text_Color = Close_Text_Color
+
+            # Generate Rain Drops:
+            cv2.putText(Rain_Frame, Text, (int(Drop_X_Position[i]), int(Drop_Y_Position[i])),
+                        Text_Font, Text_Scale, Text_Color, Text_Thickness, cv2.LINE_AA)
+
+        # Display Buttons:
+        cv2.rectangle(Rain_Frame, (0, int(Frame_Height * .9)), (int(Frame_Width * .07), Frame_Height), Dark_Cyan, -1) 
+        cv2.putText(Rain_Frame, "Reset", (int(Frame_Width * .01), int(Frame_Height * .94)), Text_Font, Button_Text_Scale, Button_Text_Colour, Text_Thickness)
+        cv2.rectangle(Rain_Frame, (int(Frame_Width * .92), int(Frame_Height * .9)), (Frame_Width, Frame_Height), Dark_Cyan, -1) 
+        cv2.putText(Rain_Frame, "Quit", (int(Frame_Width * .938), int(Frame_Height * .94)), Text_Font, Button_Text_Scale, Button_Text_Colour, Text_Thickness)
+
+        # Generate Display Frame (Add Rain Frame To BGR Gray Frame):
+        Display_Frame = cv2.addWeighted(BGR_Gray_Frame, Frame_Opacity, Rain_Frame, Rain_Opacity, Scalar)
+
+        # Display Rain Frame:
+        cv2.imshow('Time Warp Window', Display_Frame)
+        cv2.moveWindow('Time Warp Window', 0, 0)
+
+    # Check Time Warp Button:
+    if Mouse_Event == 1 and Time_Warp == False and Time_Warped == False:
+        (Mouse_X, Mouse_Y) = Mouse_Position
+        if Mouse_X > 0 and Mouse_Y < int(Frame_Height * .9) or Mouse_X > int(Frame_Width * .07) and Mouse_X < int(Frame_Width * .92) and Mouse_Y > 0:
+            Time_Warp = True
+            Time_Warped = False
+
+    # Time Warp:
+    if  Time_Warp == True and Time_Warped == False:
+        Ignore, Frame = Camera.read()
+        Flipped_Frame = cv2.flip(Frame, 1)
+        Time_Warp_Frame[0 : Frame_Height , Time_Warp_Counter : Time_Warp_Counter + 1] = Flipped_Frame [0 : Frame_Height , Time_Warp_Counter : Time_Warp_Counter + 1]
+        Flipped_Frame[0 : Frame_Height , 0 : Time_Warp_Counter + 1 ] = 0
+        Compound_Frame = Time_Warp_Frame + Flipped_Frame
+        cv2.line(Compound_Frame, (Time_Warp_Counter, 0), (Time_Warp_Counter, Frame_Height), Line_Colour, Text_Thickness)
+        cv2.rectangle(Compound_Frame, (0, int(Frame_Height * .9)), (int(Frame_Width * .07), Frame_Height), Dark_Cyan, -1) 
+        cv2.putText(Compound_Frame, "Reset", (int(Frame_Width * .01), int(Frame_Height * .94)), Text_Font, Button_Text_Scale, Light_Cyan, Text_Thickness)        
+        cv2.rectangle(Compound_Frame, (int(Frame_Width * .92), int(Frame_Height * .9)), (Frame_Width, Frame_Height), Dark_Cyan, -1) 
+        cv2.putText(Compound_Frame, "Quit", (int(Frame_Width * .938), int(Frame_Height * .94)), Text_Font, Button_Text_Scale, Button_Text_Colour, Text_Thickness)
+        Time_Warp_Counter = Time_Warp_Counter + 1
+
+        # Time Warp Complete:
+        if Time_Warp_Counter > Frame_Width:
+            cv2.rectangle(Compound_Frame, (int(Frame_Width * .365), 0), (int(Frame_Width * .603), int(Frame_Height * .06)), Dark_Cyan, -1) 
+            cv2.putText(Compound_Frame, "Time Has Been Warped", (int(Frame_Width * .375), int(Frame_Height * .043)), Text_Font, Button_Text_Scale, Button_Text_Colour, Text_Thickness)
+            Time_Warp_Counter = 0
+            Mouse_Event = 0
+            Time_Warp = False
+            Time_Warped = True
+
+        # Display Time Warp Window:
+        cv2.imshow('Time Warp Window', Compound_Frame)
+        cv2.moveWindow('Time Warp Window', 0, 0)
+
+    # Check Reset Button:
+    if Mouse_Event == 1:
+        (Mouse_X, Mouse_Y) = Mouse_Position
+        if Mouse_X < int(Frame_Width * .07) and Mouse_Y > int(Frame_Height * .9):
+            Time_Warp_Frame = numpy.zeros([Frame_Height, Frame_Width, 3], dtype = numpy.uint8)
+            Time_Warp_Counter = 0
+            Time_Warp = False
+            Time_Warped = False
+
+    # Check Quit Button:
+    if Mouse_Event == 1:
+        (Mouse_X, Mouse_Y) = Mouse_Position
+        if Mouse_X > int(Frame_Width * .92) and Mouse_Y > int(Frame_Height * .9):
+            Pressed_Key = ord('q')
+
+    # If Quit Button Pressed:
+    if Pressed_Key == ord('q'):
+        break
+Camera.release()
+ 
