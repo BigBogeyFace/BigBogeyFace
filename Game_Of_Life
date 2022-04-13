@@ -1,0 +1,275 @@
+
+# Game Of Life By BigBogeyFace:
+
+# Import Essentials:
+import cv2
+import numpy
+
+# Frame Setup:
+Frame_Width = 1280
+Frame_Height = 720
+
+# Camera Setup:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Colours:
+Black = (0, 0, 0)
+Red = (0, 0, 255)
+Green = (0, 255, 0)
+Blue = (255, 0, 0)
+Yellow = (0, 255, 255)
+White = (255, 255, 255)
+
+# Globals:
+Line_Thickness = 1
+Grid_Width = Frame_Width
+Grid_Height = Frame_Height
+Square_Size = 10
+Number_Of_Squares_Across = int(Grid_Width / Square_Size)
+Number_Of_Squares_Down = int(Grid_Height / Square_Size)
+Alive = 1
+Dead = 0
+Begin_Button_Colour = Green
+Magic_Button_Colour = Yellow
+Reset_Button_Colour = Blue
+Quit_Button_Colour = Red
+Solid = -1
+Text_Font = cv2.FONT_HERSHEY_TRIPLEX
+Text_Colour = Black
+Text_Scale = .7
+Text_Thickness = 1
+Begin = False
+Magic = False
+Number_Of_Picks = 0
+Mouse_Event = 0
+Last_Mouse_Event = 0
+Live_Cell_Count = 0
+Cell_Colour = Green
+Reincarnate = Dead
+
+# Initialise Mouse Event And Position:
+Mouse_Event = 0
+Mouse_Position = (0, 0)
+
+# Mouse Click Function:
+def Mouse_Click(event, Mouse_Position_X, Mouse_Position_Y, flags, perameters):
+    global Mouse_Event
+    global Mouse_Position
+    if event == cv2.EVENT_LBUTTONDOWN:
+        Mouse_Position = (Mouse_Position_X, Mouse_Position_Y)
+        Mouse_Event = event
+
+# Initialise Window Name:
+cv2.namedWindow('Game Of Life Window')
+
+# Initialise Mouse Click Event:
+cv2.setMouseCallback('Game Of Life Window', Mouse_Click)
+
+# Display Buttons Function:
+def Display_Buttons():
+    cv2.rectangle(Flipped_Frame, (0, 0), (Square_Size * 8, Square_Size * 4), Begin_Button_Colour, Solid) 
+    cv2.putText(Flipped_Frame, "Begin", (int(Square_Size * .7), int(Frame_Height * .04)), Text_Font, Text_Scale, Text_Colour, Text_Thickness) 
+    cv2.rectangle(Flipped_Frame, (Frame_Width - (Square_Size * 9), 0), (Frame_Width, Square_Size * 4), Magic_Button_Colour, Solid) 
+    cv2.putText(Flipped_Frame, "Magic", (Frame_Width - int(Square_Size * 8.3), int(Frame_Height * .038)), Text_Font, Text_Scale, Text_Colour, Text_Thickness)   
+    cv2.rectangle(Flipped_Frame, (0, Frame_Height - (Square_Size * 7)), (Square_Size * 8, Frame_Height), Reset_Button_Colour, Solid) 
+    cv2.putText(Flipped_Frame, "Reset", (int(Square_Size*.7), int(Frame_Height * .94)), Text_Font, Text_Scale, Text_Colour, Text_Thickness)
+    cv2.rectangle(Flipped_Frame, (Frame_Width - (Square_Size * 9), Frame_Height - (Square_Size * 7)), (Frame_Width, Frame_Height), Quit_Button_Colour, Solid) 
+    cv2.putText(Flipped_Frame, "Quit", (Frame_Width - int(Square_Size * 8.3), int(Frame_Height * .94)), Text_Font, Text_Scale, Text_Colour, Text_Thickness)
+
+# Check Begin Button Function:
+def Check_Begin_Button():
+    if Mouse_Event == 1:
+        (Mouse_X, Mouse_Y) = Mouse_Position
+        if Mouse_X < Square_Size * 8 and Mouse_Y < Square_Size * 4:
+            global Begin
+            Begin = True
+            
+# Check Magic Button Function:
+def Check_Magic_Button():    
+    if Mouse_Event == 1:
+        (Mouse_X, Mouse_Y) = Mouse_Position
+        if Mouse_X > Frame_Width - (Square_Size * 9) and Mouse_Y < Square_Size * 4:
+            global Magic
+            Magic = True
+
+# Check Reset Button:
+def Check_Reset_Buton_Function():
+    if Mouse_Event == 1:
+        (Mouse_X, Mouse_Y) = Mouse_Position
+        if Mouse_X < Square_Size * 8 and Mouse_Y >  Frame_Height - (Square_Size * 7):
+            global Grid
+            global Interim_Grid
+            global Begin
+            global Magic
+            global Reincarnate
+            Grid = numpy.zeros([Number_Of_Squares_Across, Number_Of_Squares_Down], dtype = numpy.uint8)
+            Interim_Grid = numpy.zeros([Number_Of_Squares_Across, Number_Of_Squares_Down], dtype = numpy.uint8)
+            Cell_Colour = Green
+            Magic = False
+            Begin = False
+            Reincarnate = Dead
+
+
+# Check Quit Button:
+def Check_Quit_Button_Function():
+    if Mouse_Event == 1:
+        (Mouse_X, Mouse_Y) = Mouse_Position
+        if Mouse_X > Frame_Width - (Square_Size * 9) and Mouse_Y > Frame_Height - (Square_Size * 7):
+            global Pressed_Key
+            Pressed_Key = ord('q')
+
+# Initialise Grids:
+Grid = numpy.zeros([Number_Of_Squares_Across, Number_Of_Squares_Down], dtype = numpy.uint8)
+Interim_Grid = numpy.zeros([Number_Of_Squares_Across, Number_Of_Squares_Down], dtype = numpy.uint8)
+
+# Begin Program Loop:
+while True:
+
+    # Initialise waitKey Function:
+    Pressed_Key = cv2.waitKey(1) & 0xFF
+
+    # Capture Frame:
+    Ignore, Frame = Camera.read()
+    Gray_Frame = cv2.cvtColor(Frame, cv2.COLOR_BGR2GRAY)
+    BGR_Gray_Frame = cv2.cvtColor(Gray_Frame, cv2.COLOR_GRAY2BGR)
+    Flipped_Frame = cv2.flip(BGR_Gray_Frame, 1)
+
+    # Display Grid:
+    for i in range (0, Grid_Width, Square_Size):
+        cv2.line(Flipped_Frame, (i, 0), (i, Grid_Height), Black, Line_Thickness)
+    for i in range (0, Grid_Height, Square_Size):
+        cv2.line(Flipped_Frame, (0, i), (Grid_Width, i), Black, Line_Thickness)
+
+    # Display Buttons:
+    Display_Buttons()
+
+    # Check Buttons:
+    Check_Begin_Button()
+    Check_Magic_Button()
+    Check_Reset_Buton_Function()
+    Check_Quit_Button_Function()
+
+    # Setup Board Mode:
+    if Begin == False:
+
+        # Collect Mouse Click Data:
+        if Mouse_Event == 1:
+            (Mouse_X, Mouse_Y) = Mouse_Position
+            X_Selection = int(Mouse_X / 10)
+            Y_Selection = int(Mouse_Y / 10)
+
+            # Update Interim Grid:
+            Interim_Grid[X_Selection, Y_Selection] = Alive
+            
+            # Iterate Through Interim Grid:
+            for i in range (0, Number_Of_Squares_Across, 1):
+                for j in range (0, Number_Of_Squares_Down, 1):
+
+                    # Display Grid Selections:
+                    if Interim_Grid[i, j] == 1:
+                        cv2.rectangle(Flipped_Frame, (i * 10, j * 10), (i * 10 + 10, j * 10 + 10), Green, - 1) 
+
+    # Auto Play Mode:
+    if Begin == True:
+
+        # Replace Grid With Interim Grid:
+        Grid = Interim_Grid
+
+        # Reset Interim Grid:
+        Interim_Grid = numpy.zeros([Number_Of_Squares_Across, Number_Of_Squares_Down], dtype = numpy.uint8)
+
+        # Iterate Through Grid:
+        for i in range (0, Number_Of_Squares_Across, 1):
+            for j in range (0, Number_Of_Squares_Down, 1):
+
+                # Don't Break The Rules:          
+                if i + 1 == 128:
+                    i = 0              
+                if j + 1 == 72:
+                    j = 0  
+
+                # Count Live Cell Neighbours:
+                Live_Cell_Count = 0
+                if Grid[i - 1, j - 1] == 1:
+                    Live_Cell_Count = Live_Cell_Count + 1
+                if Grid[i - 1, j] == 1:
+                    Live_Cell_Count = Live_Cell_Count + 1
+                if Grid[i - 1, j + 1] == 1:
+                    Live_Cell_Count = Live_Cell_Count + 1 
+                if Grid[i, j - 1] == 1:
+                    Live_Cell_Count = Live_Cell_Count + 1
+                if Grid[i, j + 1] == 1:
+                    Live_Cell_Count = Live_Cell_Count + 1
+                if Grid[i + 1, j - 1] == 1:
+                    Live_Cell_Count = Live_Cell_Count + 1
+                if Grid[i + 1, j] == 1:
+                    Live_Cell_Count = Live_Cell_Count + 1
+                if Grid[i + 1, j + 1] == 1:
+                    Live_Cell_Count = Live_Cell_Count + 1
+
+                # Cell Dies Of Loneliness:
+                if Live_Cell_Count == 1:
+                    if Grid[i, j] == Alive:
+                        Interim_Grid[i, j] = Dead                      
+                    if Grid[i, j] == Dead:
+                        Interim_Grid[i, j] = Dead   
+
+                # Cell Continues As Is:
+                if Live_Cell_Count == 2:
+                    if Grid[i, j] == Alive:
+                        Interim_Grid[i, j] = Alive                      
+                    if Grid[i, j] == Dead:
+                        Interim_Grid[i, j] = Dead               
+                    
+                # Cell Is Born:
+                if Live_Cell_Count == 3:
+                    if Grid[i, j] == Alive:
+                        Interim_Grid[i, j] = Alive                      
+                    if Grid[i, j] == Dead:
+                        Interim_Grid[i, j] = Alive    
+
+                # Cells Dies From Over Crouding:
+                if Live_Cell_Count == 4 :
+                    if Grid[i, j] == Alive:
+                        Interim_Grid[i, j] = Dead                      
+                    if Grid[i, j] == Dead:
+                        Interim_Grid[i, j] = Dead    
+
+                # Cells Dies From Over Crouding:
+                if Live_Cell_Count == 5:
+                    if Grid[i, j] == Alive:
+                        Interim_Grid[i, j] = Reincarnate                      
+                    if Grid[i, j] == Dead:
+                        Interim_Grid[i, j] = Reincarnate    
+
+                # Cells Dies From Over Crouding:
+                if Live_Cell_Count == 6:
+                    if Grid[i, j] == Alive:
+                        Interim_Grid[i, j] = Dead                      
+                    if Grid[i, j] == Dead:
+                        Interim_Grid[i, j] = Dead    
+
+
+                # Magic Mode:
+                if Magic == True:
+                    Reincarnate = Alive
+
+                # Display Living Cells:
+                if Grid[i, j] == Alive:
+                    cv2.rectangle(Flipped_Frame, (i * 10, j * 10), (i * 10 + 10, j * 10 + 10), Cell_Colour, - 1) 
+
+    # Display Buttons:
+    Display_Buttons()
+
+    # Display frame:
+    cv2.imshow('Game Of Life Window',Flipped_Frame)
+    cv2.moveWindow('Game Of Life Window',0,0)
+
+    # If Quit Button Pressed:
+    if Pressed_Key == ord('q'):
+        break
+Camera.release()
+ 
