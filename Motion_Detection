@@ -1,0 +1,102 @@
+
+# Motion Detection By BigBogeyFace:
+
+# Please Note: 
+# This Motion Detection Program Is Extremely Sensitive.
+# It Operates In Almost Complete Darkness.
+# It Is Hypersensitive To Changes In Brightness.
+# Unfortunately, This Makes It Susceptible To External Light Sources.
+
+# Import Essentials:
+import cv2
+
+# Frame Setup:
+Frame_Width = 640
+Frame_Height = 320
+
+# Full Size Frame Setup:
+Full_Size_Frame_Width = 1280
+Full_Size_Frame_Height = 720
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Colours:
+Red = (0, 0, 255)
+Orange = (0, 127, 255)
+Yellow = (0, 255, 255)
+Green = (0, 255, 0)
+Blue = (255, 0, 0)
+Indigo = (128, 0, 55)
+Violet = (250, 0, 175)
+
+# Contour Global Variables:
+Contour_Threshold = 1
+Contour_Colour = Red
+Contour_Line_Thickness = 1
+Line_Thickness = 3
+Area_Low = 25
+Area_High = Frame_Width * Frame_Height
+Solid = -1
+
+# Text Global Variables:
+Text = "Motion Detected"
+Text_Colour = Red
+Text_Bottom_Left_Origin = (int(Frame_Width /20), int(Frame_Height /6))
+Text_Font = cv2.FONT_HERSHEY_SIMPLEX
+Text_Font_Scale = 1
+Text_Thickness = 2
+
+# Begin Program Loop:
+while True:
+
+    # Capture Frames:
+    Ignore, Control_Frame = Camera.read()
+    Ignore, Test_Frame = Camera.read()
+
+    # Flip Frames Horizontally:
+    Control_Frame_Flipped = cv2.flip(Control_Frame, 1)
+    Test_Frame_Flipped = cv2.flip(Test_Frame, 1)
+
+    # Convert Frames To Gray-Scale:
+    Control_Gray_Frame = cv2.cvtColor(Control_Frame_Flipped, cv2.COLOR_BGR2GRAY)
+    Test_Gray_Frame = cv2.cvtColor(Test_Frame_Flipped, cv2.COLOR_BGR2GRAY)
+
+    # Generate Differential Frame:
+    Differential_Frame = Control_Gray_Frame - Test_Gray_Frame
+
+    # Generate Threshold Frame:
+    ret, Threshold_Frame = cv2.threshold(Differential_Frame, Contour_Threshold, 255, cv2.THRESH_BINARY)
+
+    # Find Contours In Threshold Frame:
+    Contours_Found, hierarchy = cv2.findContours(Threshold_Frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Fill Contours On Differential Frame:
+    cv2.drawContours(Differential_Frame, Contours_Found, Solid, Green, Line_Thickness)
+
+    # Find Contours In Differential Frame:
+    Differential_Contours_Found, hierarchy = cv2.findContours(Differential_Frame, cv2.RETR_TREE, 
+                                                              cv2.CHAIN_APPROX_SIMPLE)
+
+    # Detect Motion:
+    for Contour in Differential_Contours_Found:
+        Area = cv2.contourArea(Contour)
+        if Area > Area_Low and Area < Area_High:
+            cv2.putText(Control_Frame_Flipped, Text, Text_Bottom_Left_Origin, Text_Font, Text_Font_Scale, 
+                        Text_Colour, Text_Thickness, cv2.LINE_AA)
+            cv2.drawContours(Control_Frame_Flipped, Contour, Solid, Contour_Colour, Contour_Line_Thickness)
+
+    # Resize Control Frame:
+    Full_Size_Control_Frame = cv2.resize(Control_Frame_Flipped, (Full_Size_Frame_Width, Full_Size_Frame_Height))
+
+    # Show Control Frame:
+    cv2.imshow('Motion Detection Window', Full_Size_Control_Frame)
+    cv2.moveWindow('Motion Detection Window', 0, 0)    
+
+    # Check For "Q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
