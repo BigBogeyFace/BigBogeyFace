@@ -1,0 +1,117 @@
+
+# Motion Detection Within Roi By BigBogeyFace:
+
+# Import Essentials:
+import cv2
+
+# Frame Setup:
+Frame_Width = 640
+Frame_Height = 360
+
+# Full Size Frame Setup:
+Full_Size_Frame_Width = 1280
+Full_Size_Frame_Height = 720
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Colours:
+Red = (0, 0, 255)
+Orange = (0, 127, 255)
+Yellow = (0, 255, 255)
+Green = (0, 255, 0)
+Blue = (255, 0, 0)
+Indigo = (128, 0, 55)
+Violet = (250, 0, 175)
+
+# Contour Global Variables:
+Contour_Threshold = 1
+Contour_Colour = Orange
+Contour_Line_Thickness = 1
+Line_Thickness = 3
+Area_Low = 25
+Area_High = Frame_Width * Frame_Height
+Solid = -1
+
+# Text Global Variables:
+Text = "Warning!!!"
+Text_Colour = Red
+Text_Bottom_Left_Origin = (int(Frame_Width /20), int(Frame_Height /6))
+Text_Font = cv2.FONT_HERSHEY_SIMPLEX
+Text_Font_Scale = 2
+Text_Thickness = 2
+
+# Mouse Clicks::
+evt = 0
+Down_X = 0
+Down_Y = 0
+Up_X = 0
+Up_Y = 0
+def MouseClick(event, xPos, yPos, flags, perameters):
+    global evt
+    global Down_X
+    global Down_Y     
+    global Up_X
+    global Up_Y    
+    if event == cv2.EVENT_LBUTTONDOWN:
+        Down_X = int(xPos * .5)
+        Down_Y = int(yPos * .5)
+        evt = event
+    if event == cv2.EVENT_LBUTTONUP:
+        Up_X = int(xPos * .5)
+        Up_Y = int(yPos * .5)
+        evt = event
+
+# Initialise Window Name:
+cv2.namedWindow('Motion Detection Window')
+cv2.setMouseCallback('Motion Detection Window', MouseClick)
+
+# Initialise Roi As Non-Existent:
+RoiCreated=False
+
+# Begin Program Loop:
+while True:
+
+    # Frame Management:
+    Ignore, Control_Frame = Camera.read()
+    Ignore, Test_Frame = Camera.read()
+    Control_Frame_Flipped = cv2.flip(Control_Frame, 1)
+    Test_Frame_Flipped = cv2.flip(Test_Frame, 1)
+    Control_Gray_Frame = cv2.cvtColor(Control_Frame_Flipped, cv2.COLOR_BGR2GRAY)
+    Test_Gray_Frame = cv2.cvtColor(Test_Frame_Flipped, cv2.COLOR_BGR2GRAY)
+    Differential_Frame = Control_Gray_Frame - Test_Gray_Frame
+
+    # Collect Mouse Click Roi:
+    if evt == 1:
+        RoiCreated = False  
+    if evt == 4:
+        Roi = Differential_Frame[Down_Y : Up_Y, Down_X : Up_X]
+        RoiCreated = True
+
+    # Detect Contours Roi:
+    if RoiCreated == True:
+        ret, Threshold_Frame = cv2.threshold(Roi, Contour_Threshold, 255, cv2.THRESH_BINARY)
+        Contours_Found, hierarchy = cv2.findContours(Threshold_Frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(Roi, Contours_Found, Solid, Green, Line_Thickness)
+        Differential_Contours_Found, hierarchy = cv2.findContours(Roi, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.rectangle(Control_Frame_Flipped, (Down_X, Down_Y), (Up_X, Up_Y), Green, Line_Thickness)
+
+        # Detect Motion Within Roi:
+        for Contour in Differential_Contours_Found:
+            Area = cv2.contourArea(Contour)
+            if Area > Area_Low and Area < Area_High:
+                cv2.putText(Control_Frame_Flipped, Text, Text_Bottom_Left_Origin, Text_Font, Text_Font_Scale, Text_Colour, Text_Thickness, cv2.LINE_AA)
+                cv2.rectangle(Control_Frame_Flipped, (Down_X, Down_Y), (Up_X, Up_Y), Red, Line_Thickness)
+
+    # Display Frame:
+    Full_Size_Control_Frame = cv2.resize(Control_Frame_Flipped, (Full_Size_Frame_Width, Full_Size_Frame_Height))
+    cv2.imshow('Motion Detection Window', Full_Size_Control_Frame)
+    cv2.moveWindow('Motion Detection Window', 0, 0)    
+
+    # Check For "q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
