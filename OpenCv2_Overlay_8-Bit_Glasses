@@ -1,0 +1,73 @@
+
+# Overlay 8_Bit Glasses By BigBogeyFace:
+
+# Import Essentials:
+import cv2
+import dlib
+from math import hypot
+
+# Setup Frame:
+Frame_Width = 1280
+Frame_Height = 720
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Detect Faces And Predict Shapes:
+Detector = dlib.get_frontal_face_detector()
+Predictor = dlib.shape_predictor("C:/Users/BigBo/OneDrive/Documents/Python_OpenCv/shape_predictor_68_face_landmarks.dat")
+
+# Begin Program Loop:
+while True:
+
+    # Capture & Modify Frame: 
+    Ignore,Frame = Camera.read()
+    Flipped_Frame = cv2.flip(Frame, 1)
+    Gray_Flipped_Frame = cv2.cvtColor(Flipped_Frame, cv2.COLOR_BGR2GRAY)
+
+    # Import Glasses Image:
+    Glasses_Image = cv2.imread("C:/Users/BigBo/Documents/Python/Glasses_8-Bit.png")
+
+    # Detect Faces:
+    faces = Detector(Gray_Flipped_Frame)
+    for face in faces:
+        Landmarks = Predictor(Gray_Flipped_Frame, face)   
+
+        # Unpack Face Landmark Data:    
+        Left_Eye_Brow = (Landmarks.part(0).x, Landmarks.part(21).y)
+        Right_Eye_Brow = (Landmarks.part(16).x, Landmarks.part(28).y)
+
+        # Calculate Glasses Image Dimensions:
+        Glasses_Width = int(hypot(Left_Eye_Brow[0] - Right_Eye_Brow[0], Left_Eye_Brow[1] - Right_Eye_Brow[1]))
+        Glasses_Height = int(Glasses_Width * .2112182296231376)
+
+        # Conglomerate Glasses Variables:
+        Top_Left = (int(Left_Eye_Brow[0]), int(Left_Eye_Brow[1]))
+        Bottom_Right = (int(Right_Eye_Brow[0]), int(Right_Eye_Brow[1]))
+
+        # Modify Glasses Image:
+        Glasses = cv2.resize(Glasses_Image, (Glasses_Width, Glasses_Height))
+        Glasses_Gray = cv2.cvtColor(Glasses, cv2.COLOR_BGR2GRAY)
+        _,Glasses_Mask = cv2.threshold(Glasses_Gray, 0, 255, cv2.THRESH_BINARY_INV)
+
+        # Define Glasses Area:
+        Glasses_Area = Flipped_Frame [Top_Left[1] : Top_Left[1] + Glasses_Height, Top_Left[0] : Top_Left[0] + Glasses_Width]
+
+        # Remove Glasses Area From Frame:
+        Glasses_Area_No_Glasses = cv2.bitwise_and(Glasses_Area, Glasses_Area, mask = Glasses_Mask)
+        Final_Glasses = cv2. add(Glasses_Area_No_Glasses, Glasses)
+
+        # Replace Glasses Area With Glasses:
+        Flipped_Frame [Top_Left[1] : Top_Left[1] + Glasses_Height, Top_Left[0] : Top_Left[0] + Glasses_Width] = Final_Glasses
+
+    # Display Glasses On Window:
+    cv2.imshow('Display Window', Flipped_Frame)
+    cv2.moveWindow('Display Window', 0, 0)
+
+    # Check For q To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
