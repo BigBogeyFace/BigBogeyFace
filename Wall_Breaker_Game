@@ -1,0 +1,287 @@
+
+# Wall Breaker Game By BigBogeyFace:
+
+# Import Essentials:
+from vpython import *
+import random
+import numpy
+import serial
+
+# Screen Setup
+Screen_Width = 1150
+Screen_Height = int (Screen_Width * .5)
+Canvas = canvas (width = Screen_Width, height = Screen_Height)
+
+# Parametrics:
+cm = 1
+Lux = .003921568627451
+Brick_Length = cm * 20
+Brick_Height = cm * 6
+Brick_Width = cm * 10
+Ball_Radius = cm * 6
+
+# Global Variables:
+Number_Of_Bricks_Across = 12
+Number_Of_Bricks_High = 4
+Half_Brick_Height = Brick_Height * .5
+Box_Height = Number_Of_Bricks_High * Brick_Height * 4
+
+# Wall Calculations:
+Wall_Length = Number_Of_Bricks_Across * Brick_Length
+Wall_Height_Buffer = Number_Of_Bricks_High * Brick_Height
+Wall_Height = Number_Of_Bricks_High * Brick_Height + Wall_Height_Buffer
+Wall_Thickness = Brick_Length * .1
+
+# Generate Grid:
+Grid = numpy.ones ([Number_Of_Bricks_High, Number_Of_Bricks_Across], dtype = numpy.uint8)
+
+# Generate Brick Names:
+Brick_Counter = 0
+Brick_Number = []
+for i in range (0,Number_Of_Bricks_High,1):
+    for j in range (0,Number_Of_Bricks_Across,1):
+        Brick_Number.append (str (Brick_Counter))
+        Brick_Counter = Brick_Counter + 1
+
+# Initialise Wall Positions:
+X_Pos = - Wall_Length * .5 + Brick_Length * .5
+Y_Pos = + Wall_Height
+
+# Generate Wall:
+Brick_Counter = 0
+for i in range (0, Number_Of_Bricks_High, 1):
+    for j in range (0, Number_Of_Bricks_Across, 1):
+        Brick_Number[Brick_Counter] = box (length = Brick_Length, width = Brick_Width, height = Brick_Height, 
+        pos = vector (X_Pos, Y_Pos, 0), 
+        color = vector ((random.randint (0, 255) * Lux), (random.randint (0, 255) * Lux), (random.randint (0, 255) * Lux)), 
+        visible = True)
+        Brick_Counter = Brick_Counter + 1
+        X_Pos = X_Pos + Brick_Length
+    X_Pos = - Wall_Length * .5 + Brick_Length * .5
+    Y_Pos = Y_Pos - Brick_Height
+
+# Generate Ball:
+Ball_X_Position = 0
+Ball_Y_Position = 0
+Ball_Colour = color.white
+Ball = sphere (radius = Ball_Radius, pos = vector (Ball_X_Position, Ball_Y_Position, 0), Color = Ball_Colour, visible = True)
+Ball_X_Zone = 0
+Ball_Y_Zone = 7
+
+# Horizontal Paddle Perameters:
+Paddle_Colour = color.white
+Paddle_X_Position = -100
+Paddle_Y_Position = 0
+Paddle_Height = Brick_Height
+Half_Paddle_Height = Paddle_Height * .5
+Paddle_Length = Brick_Length * 2
+Half_Paddle_Length = int(Paddle_Length * .5)
+
+# Generate Top Paddle:
+Top_Paddle = box (length = Paddle_Length, width = Brick_Width, height = Paddle_Height, 
+    pos = vector (0, + Wall_Height + Paddle_Height, 0), color = Paddle_Colour, visible = True)
+
+# Generate Bottom Paddle:
+Bottom_Paddle = box (length = Paddle_Length, width = Brick_Width, height = Paddle_Height, 
+    pos = vector (0, - Wall_Height, 0), color = Paddle_Colour, visible = True)
+
+# Vertical Paddle Perameters:
+Side_Paddle_Length = Brick_Height
+Side_Paddle_Width = Brick_Width
+Side_Paddle_Height = Brick_Length
+Half_Side_Paddle_Height = Side_Paddle_Height * .5
+Side_Paddle_Y_Position = 1
+
+# Generate Left Paddle:
+Left_Side_Paddle = box (length = Side_Paddle_Length, width = Side_Paddle_Width, height = Side_Paddle_Height, color = Paddle_Colour, 
+    visible = True, 
+    pos = vector(- Number_Of_Bricks_Across * (Brick_Length * .5) - (Side_Paddle_Length * .5), Side_Paddle_Y_Position, 0))
+
+# Generate Right Paddle:
+Right_Side_Paddle = box (length = Side_Paddle_Length, width = Side_Paddle_Width, height = Side_Paddle_Height, color = Paddle_Colour, 
+    visible = True, 
+    pos = vector(Number_Of_Bricks_Across * (Brick_Length * .5) + (Side_Paddle_Length * .5), Side_Paddle_Y_Position, 0))
+
+# Ball Speed:
+Delta_X = .1
+Delta_Y = .1
+
+# Game Play:
+Game_Over = True
+End_Text_Displayed = False
+
+# Generate Arduino Data Object:
+Arduino_Data = serial.Serial('com8', 57600)
+
+# Begin Program Loop:
+while True:
+
+    # Update Wall Visibility:
+    Brick_Counter = 0
+    for i in range (0, Number_Of_Bricks_High, 1):
+        for j in range (0, Number_Of_Bricks_Across, 1):
+            if Grid[i][j] == 1:
+                Brick_Number[Brick_Counter].visible = True  
+            if Grid[i][j] == 0:
+                Brick_Number[Brick_Counter].visible = False
+            Brick_Counter = Brick_Counter + 1
+
+    # Intro:
+    if Game_Over == True:
+        Start_3 = text(text = 'Ready\n3', align = 'center', pos = vector(0, 0, 0), height = Brick_Height * 2, depth = Brick_Width, 
+        color = color.red, visible = True)        
+        sleep(1)
+        Start_3.visible = False
+        Start_2 = text(text = 'Ready\n2', align = 'center', pos = vector(0, 0, 0), height = Brick_Height * 2, depth = Brick_Width, 
+        color = color.orange, visible = True)        
+        sleep(1)
+        Start_2.visible = False
+        Start_1 = text(text = 'Ready\n1', align = 'center', pos = vector(0, 0, 0), height = Brick_Height * 2, depth = Brick_Width, 
+        color = color.yellow, visible = True)        
+        sleep(1)
+        Start_1.visible = False
+        Go = text(text = 'Go!!!', align = 'center', pos = vector(0, 0, 0), height = Brick_Height * 2, depth = Brick_Width, 
+        color = color.green, visible = True)        
+        sleep(.1)
+        Go.visible = False
+        print("You Started A New Game")
+        Game_Over = False
+
+    # Update Ball Position:
+    Ball.pos = vector (Ball_X_Position, Ball_Y_Position, 0)
+    Ball_X_Position = Ball_X_Position + Delta_X
+    Ball_Y_Position = Ball_Y_Position + Delta_Y
+
+    # Ball In Brick Area:
+    if Ball_Y_Position > (Brick_Height * Number_Of_Bricks_High) - Ball_Radius * .5:
+
+        # Calculate Balls Grid Y Position:
+        for i in range (0, Number_Of_Bricks_High, 1):
+            if (Ball_Y_Position > (Brick_Height * i) + (Brick_Height * Number_Of_Bricks_High) - Ball_Radius * .5 
+                and Ball_Y_Position < (Brick_Height * (i + 1)) + (Brick_Height * Number_Of_Bricks_High) - Ball_Radius * .5 ):
+                Ball_Y_Zone = i
+
+        # Calculate Balls Grid X Position:
+        for i in range (0, Number_Of_Bricks_Across, 1):
+            if (Ball_X_Position > (Brick_Length * i) - int (Wall_Length * .5) 
+                and Ball_X_Position < (Brick_Length * (i + 1)) - int (Wall_Length * .5)):
+                Ball_X_Zone = i
+
+        # Ball Brick Rebound:
+        if Grid[(Number_Of_Bricks_High - 1) - Ball_Y_Zone][Ball_X_Zone] == 1:
+            Grid[(Number_Of_Bricks_High - 1) - Ball_Y_Zone][Ball_X_Zone] = 0
+            Delta_Y = Delta_Y * (- 1)
+            print("You Hit A Brick")
+    
+    # Wait For Joystick Data:
+    while (Arduino_Data.inWaiting() == 0):
+        pass
+        
+    # Manipulate Joystick Data:
+    Data_Packet = Arduino_Data.readline()
+    Data_Packet = str(Data_Packet, 'utf-8')
+    Split_Packet = Data_Packet.split(",")
+    X_Data = int(Split_Packet[0])
+    Y_Data = int(Split_Packet[1])
+
+    # Convert Joystick Data To Paddle Positions:
+    Paddle_X_Position = (( - 100 - Side_Paddle_Length) + (X_Data * 0.2072336265884653))
+    if Y_Data < 520:
+        Y_Data = 0
+    if Y_Data >= 520:
+        Y_Data = Y_Data - 520
+    Side_Paddle_Y_Position = (Y_Data  * 0.1510934393638171)
+       
+    # Renumerate Vector Space:
+    New_Ball_X_Position = Ball_X_Position + ((Number_Of_Bricks_Across * Brick_Length)*.5) - (Ball_Radius *.5)
+    New_Ball_Y_Position = Ball_Y_Position + ((Number_Of_Bricks_High * Brick_Height)*2)
+    Horizontal_Paddle_X_Position = Paddle_X_Position + ((Number_Of_Bricks_Across * Brick_Length)*.5)
+    Vertical_Paddle_Y_Position = Side_Paddle_Y_Position + 15
+
+    # Update Paddle Positions:
+    Top_Paddle.pos = vector(Paddle_X_Position, + Wall_Height + Paddle_Height, 0)
+    Bottom_Paddle.pos = vector(Paddle_X_Position, - Wall_Height, 0)
+    Left_Side_Paddle.pos = vector(- Number_Of_Bricks_Across * (Brick_Length * .5) - (Side_Paddle_Length * .5),
+    - 38 + Side_Paddle_Y_Position  + Half_Paddle_Height, 0)
+    Right_Side_Paddle.pos = vector(Number_Of_Bricks_Across * (Brick_Length * .5) + (Side_Paddle_Length * .5), 
+    - 38 + Side_Paddle_Y_Position +  Half_Paddle_Height, 0)
+
+    # Top Paddle Collision:
+    if Ball_Y_Position > + Wall_Height + Paddle_Height - Ball_Radius - Half_Paddle_Height:
+        if (New_Ball_X_Position > Horizontal_Paddle_X_Position - Half_Paddle_Length 
+            and New_Ball_X_Position < Horizontal_Paddle_X_Position + Half_Paddle_Length):
+            Delta_Y = Delta_Y * (- 1)
+            print("Top Paddle Collision")
+
+    # Bottom Paddle Collision:
+    if Ball_Y_Position < - Wall_Height + Ball_Radius + Half_Paddle_Height:
+        if (New_Ball_X_Position > Horizontal_Paddle_X_Position - Half_Paddle_Length 
+            and New_Ball_X_Position < Horizontal_Paddle_X_Position + Half_Paddle_Length):
+            Delta_Y = Delta_Y * (- 1)
+            Delta_X = Delta_X + .025
+            Delta_Y = Delta_Y + .025
+            print("Bottom Paddle Collision")
+
+    # Left Paddle Collision:
+    if Ball_X_Position < - Number_Of_Bricks_Across * (Brick_Length * .5) - (Side_Paddle_Length * .5) + Ball_Radius + Half_Paddle_Height:
+        if New_Ball_Y_Position > Vertical_Paddle_Y_Position - 10 and New_Ball_Y_Position < Vertical_Paddle_Y_Position + 10:
+            Delta_X = Delta_X * (-1)
+            print("Left Paddle Collision")
+
+    # Right Paddle Collision:
+    if Ball_X_Position > Number_Of_Bricks_Across * (Brick_Length * .5) + (Side_Paddle_Length * .5) - Ball_Radius - Half_Paddle_Height:
+        if New_Ball_Y_Position > Vertical_Paddle_Y_Position - 10 and New_Ball_Y_Position < Vertical_Paddle_Y_Position + 10:
+            Delta_X = Delta_X * (-1)
+            print("Right Paddle Collision")
+
+    # Ball Out Of Bounds Top:
+    if Ball_Y_Position > + Wall_Height + Paddle_Height - Ball_Radius:
+        Delta_Y = Delta_Y * (-1)
+        Game_Over = True
+        print("Out Of Bounds Top")
+
+    # Ball Out Of Bounds Bottom:
+    if Ball_Y_Position < - Wall_Height + Ball_Radius:
+        Delta_Y = Delta_Y * (-1)
+        Game_Over = True
+        print("Out Of Bounds Bottom")
+
+    # Ball Out Of Bounds Left:
+    if Ball_X_Position < - Number_Of_Bricks_Across * (Brick_Length * .5) - (Side_Paddle_Length * .5) + Ball_Radius - Half_Paddle_Height:
+        Delta_X = Delta_X * (-1)
+        Game_Over = True
+        print("Out Of Bounds Left")
+
+    # Ball Out Of Bounds Right:
+    if Ball_X_Position > Number_Of_Bricks_Across * (Brick_Length * .5) + (Side_Paddle_Length * .5) - Ball_Radius:
+        Delta_X = Delta_X * (-1)
+        Game_Over = True
+        print("Out Of Bounds Right")
+
+    # Game Over:
+    while Game_Over == True:
+        Ball.visible = False
+        Missed_Text = text(text = 'You Missed\nGame Over', align = 'center', pos = vector(0, 0, 0), 
+            height = Brick_Height * 2, depth = Brick_Width, color = color.red, visible = True)        
+        if End_Text_Displayed == False:
+            print("You Lost\nGame Over")
+            End_Text_Displayed = True
+
+    # You Win:
+    Brick_Counter = 0
+    Win_Counter = 0
+    for i in range (0, Number_Of_Bricks_High, 1):
+        for j in range (0, Number_Of_Bricks_Across, 1):
+            if Grid[i][j] == 1:
+                pass
+            if Grid[i][j] == 0:
+                Win_Counter = Win_Counter + 1
+                if Win_Counter == Number_Of_Bricks_Across * Number_Of_Bricks_High:
+                    print("You absolute legend, You Won!!!")
+                    Winner = True
+                    Ball.visible = False
+                    while Winner == True:
+                        Missed_Text = text(text = 'Congratulations\nYou Won!!!', align = 'center', pos = vector(0, 0, 0),
+                            height = Brick_Height * 2, depth = Brick_Width, color = color.yellow, visible = True)        
+            Brick_Counter = Brick_Counter + 1
+            
