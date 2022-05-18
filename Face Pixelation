@@ -1,0 +1,76 @@
+
+# Pixelate Face By BigPixelatedBogeyFace:
+
+# Import Essentials:
+import cv2
+import dlib
+
+# Frame Setup:
+Frame_Width = 1280
+Frame_Height = 720
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Face Detection And Shape Prediction:
+Detector = dlib.get_frontal_face_detector()
+Predictor = dlib.shape_predictor("C:/Users/BigBo/Documents/Python/shape_predictor_68_face_landmarks.dat")
+ 
+# Pixelation Global Variables:
+Size_Of_Squares = .1
+Top_Left_Height_Of_Grid = 6
+Number_OF_Squares_Down = 14
+Number_Of_Squares_Across = 11
+
+# Begin Program Loop:
+while True:
+
+    # Get Frame:
+    Ignore,Frame = Camera.read()
+    Flipped_Frame = cv2.flip(Frame, 1)
+
+    # Find Faces:
+    faces = Detector(Flipped_Frame)
+    for face in faces:
+        landmarks = Predictor(Flipped_Frame, face)  
+
+        # Collect Landmark Data:     
+        Left_X, Left_Y = (landmarks.part(1).x, landmarks.part(1).y)
+        Right_X, Right_Y = (landmarks.part(15).x, landmarks.part(15).y)
+
+        # Determine Square Size:
+        Square_Length = int((Right_X - Left_X) * Size_Of_Squares)
+
+        # Plot Top Left Of Grid:
+        Top_Left_X = int(Left_X)
+        Top_Left_Y = int(Left_Y - (Square_Length * Top_Left_Height_Of_Grid))
+
+        # Iterate Down Grid:
+        for i in range (0, Number_OF_Squares_Down, 1):
+
+            # Iterate Across Grid:
+            for j in range (0, Number_Of_Squares_Across, 1):
+                
+                # Define Square:
+                Square = Flipped_Frame[Top_Left_Y + (Square_Length * i) : Top_Left_Y + (Square_Length * (i + 1)), 
+                                    Top_Left_X + (Square_Length * j) : Top_Left_X + (Square_Length * (j + 1))]
+        
+                # Determine Square Colour:
+                Pixelation_Colour = (Square[0][0])
+
+                # Colour In Square:
+                Pixelated_Square = Flipped_Frame [Top_Left_Y + (Square_Length * i) : Top_Left_Y + (Square_Length * (i + 1)), 
+                                            Top_Left_X + (Square_Length * j) : Top_Left_X + (Square_Length * (j + 1))] = Pixelation_Colour
+  
+    # Show frame:
+    cv2.imshow('Final Frame', Flipped_Frame)
+    cv2.moveWindow('Final Frame',0,0)
+
+    # Check For "Q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
+ 
