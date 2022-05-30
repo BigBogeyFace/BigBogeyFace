@@ -1,0 +1,632 @@
+
+# The Pixelation Game By BigBogeyFace:
+
+# Import Essentials:
+import cv2
+import time
+import random
+
+# Setup Frame (720p):
+Frame_Width = 1280
+Frame_Height = 720
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Setup Mouse Call Back:
+Mouse_Event = 0
+Mouse_Positions = 0
+Mouse_X_Position = 0
+Mouse_Y_Position = 0
+def Mouse_Click(event, Mouse_Position_X, Mouse_Position_Y, flags, perameters):
+    global Mouse_Event
+    global Mouse_Positions
+    global Mouse_X_Position
+    global Mouse_Y_Position
+    if event == cv2.EVENT_MOUSEMOVE:
+        Mouse_X_Position = (Mouse_Position_X)
+        Mouse_Y_Position = (Mouse_Position_Y)
+        Mouse_Positions = event
+    if event == cv2.EVENT_LBUTTONDOWN:
+        Mouse_Event = event
+cv2.namedWindow('The Pixelation Game Window')
+cv2.setMouseCallback('The Pixelation Game Window', Mouse_Click)
+
+# Colour Pallet:
+Red = (0, 0, 255)
+Dark_Red = (30, 30, 200)
+Orange = (0, 150, 255)
+Yellow = (0, 255, 255)
+Green = (0, 255, 0)
+Cyan = (255, 255, 0)
+Blue = (255, 0, 0)
+Purple = (255, 0, 255)
+Black = (0, 0, 0)
+Gray = (127, 127, 127)
+Cream = (236, 255, 255)
+White = (255, 255, 255)
+
+# Univeral Text Variables:
+Text_Font = cv2.FONT_HERSHEY_SIMPLEX
+Text_Scale = 2
+Text_Background_Thickness = 10
+Text_Foreground_Thickness = 2
+Text_Background_Colour = Black
+Solid = -1
+
+# Text Colouration Variables:
+Score_Text_Colour = White
+Round_Text_Colour = White
+Intro_Text_Colour = Cyan
+Promt_Text_Colour = Cyan
+User_Answer_Text_Colour = Green
+Win_Text_Line_One_Colour = Cyan
+Win_Text_Line_Two_Colour = Cyan
+Lose_Text_Line_One_Colour = Red
+Lose_Text_Line_Two_Colour = Orange
+Lose_Text_Line_Three_Colour = Yellow
+Completion_Text_Line_One_Colour = Cyan
+Completion_Text_Line_Two_Colour = Yellow
+Completion_Text_Line_Three_Colour = Green
+
+# Close Button Text Variables:
+Close_Button_Font = cv2.FONT_HERSHEY_SIMPLEX
+Close_Button_Font_Thickness = 1
+Close_Button_Font_Scale = .4
+Close_Button_Line_Thickness = 1
+
+# Setup Close Button Functionality:
+Button_Interaction_Timer = True
+Got_Button_Text_Position = False
+Display_Button_Text = True
+
+# List All Images:
+Image = ['The_Pixelation_Game_Images_720p\Abraham_Lincoln_720p.jpg', 
+         'The_Pixelation_Game_Images_720p\Adele_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Albert_Einstein_1_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Albert_Einstein_2_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Anne_Frank_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Beethoven_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Big_Bogey_Face_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Bill_Clinton_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Bill_Gates_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Bob-Marley_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Boris_Johnson_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Bruce_Lee_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Charles_Darwin_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Che_Guevara_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Clint_Eastwood_720p.jpg',
+         'The_Pixelation_Game_Images_720p\David_Bowie_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Diana Princess Of Wales_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Elon_Musk_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Elvis_Presley_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Jackie_Chan_720p.jpg',
+         'The_Pixelation_Game_Images_720p\John_F._Kennedy_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Mahatma_Gandhi_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Marilyn_Monroe_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Mark_Zuckerberg_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Martin_Luther_King_Jr_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Mother_Teresa_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Oprah_Winfrey_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Paul_McCartney_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Barack_Obama_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Queen_Victoria_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Queen_Elizabeth_ll_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Stephen_Hawking_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Steve_Jobs_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Tom_Cruise_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Tom_Hanks_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Tutankhamun_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Van_Gogh_720p.jpg',
+         'The_Pixelation_Game_Images_720p\William_Shakespeare_720p.jpg',
+         'The_Pixelation_Game_Images_720p\Winston_Churchill_720p.jpg']
+
+# List All Corresponding Answers:
+All_Answers = [' Abraham Lincoln',
+               ' Adele',
+               ' Albert Einstein',
+               ' Albert Einstien',
+               ' Anne Frank',
+               ' Beethoven',
+               ' Big Bogey Face',
+               ' Bill Clinton',
+               ' Bill Gates',
+               ' Bob Marley',
+               ' Boris Johnson',
+               ' Bruce Lee',
+               ' Charles Darwin',
+               ' Che Guevara',
+               ' Clint Eastwood',
+               ' David Bowie',
+               ' Diana Princess Of Wales',
+               ' Elon Musk',
+               ' Elvis Presley',
+               ' Jackie Chan',
+               ' John F Kennedy',
+               ' Mahatma Gandhi',
+               ' Marilyn Monroe',
+               ' Mark Zuckerberg',
+               ' Martin Luther King Jr',
+               ' Mother Teresa',
+               ' Opera Winfrey',
+               ' Paul McCartney',
+               ' Barack Obama',
+               ' Queen Victoria',
+               ' Queen Elizabeth ll',
+               ' Stephen Hawking',
+               ' Steve Jobs',
+               ' Tom Cruise',
+               ' Tom Hanks',
+               ' Tutankhamun',
+               ' Van Gogh',
+               ' William Shakespeare',
+               ' Winston Churchill']
+
+# Setup Game Play:
+Number_Of_Images = 39
+Number_Of_Rounds = 7
+Round = Number_Of_Rounds
+Intro_Timer = 0
+Game_Over_Timer = 0
+Finishing_Timer = 0
+Congratulations_Counter = 0
+Wrong_Answer_Counter = 0
+Right_Answer_Counter = 0
+Unknown_Image_Timer = 0
+End_Timer = 0
+Ready_Answer = " "
+Displayed_Ready_Answer = " "
+User_Answer = " "
+Displayed_User_Answer = " "
+Displayed_Restart_Answer = " "
+Got_Restart_Answer = " "
+Ready_Shown = False
+Got_Ready_Answer = False
+Intro_Shown = True
+Play_Game = False
+Image_Selected = False
+Continue = False
+Reset = False
+Got_User_Answer = False
+Game_Complete = False
+Display_End_Prompt = False
+Game_Over = False
+Score_Added = False
+Total_Points = 0
+Points = 100
+Score = 0
+
+# Begin Program Loop:
+while True:
+
+    # Initialise waitKey:
+    Pressed_Key = cv2.waitKey(1) & 0xFF
+
+    # Manage Frame:
+    Ignore, Frame = Camera.read()
+    Gray_Frame = cv2.cvtColor(Frame, cv2.COLOR_BGR2GRAY)
+    Flipped_Gray_Frame = cv2.flip(Gray_Frame, 1)
+    RGB_Flipped_Gray_Frame = cv2.cvtColor(Flipped_Gray_Frame, cv2.COLOR_GRAY2BGR)
+
+        # Display Intro:
+    if Ready_Shown == False:
+        cv2.putText(RGB_Flipped_Gray_Frame, "Ready?", (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                    Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, "Ready?", (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                    Text_Scale, Intro_Text_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+
+        # Display Restart Answer:
+        cv2.putText(RGB_Flipped_Gray_Frame, str(Displayed_Ready_Answer), (int(Frame_Width * .005), int(Frame_Height * .3)), 
+                    Text_Font, Text_Scale, Text_Background_Colour, 
+                    Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, str(Displayed_Ready_Answer), (int(Frame_Width * .005), int(Frame_Height * .3)), 
+                    Text_Font, Text_Scale, User_Answer_Text_Colour, 
+                    Text_Foreground_Thickness, cv2.LINE_AA)
+
+        # Collect Key Presses:
+        if Pressed_Key > 31 and Pressed_Key < 127:
+            Ready_Answer = Ready_Answer + chr(Pressed_Key)
+            Displayed_Ready_Answer = Ready_Answer
+
+        # Return Key, Pressed:
+        if  Pressed_Key == (13):
+            Ready_Answer = Ready_Answer.lower()
+            Got_Ready_Answer = True
+
+        # Check User Answer:
+        if Got_Ready_Answer == True:
+            if (Ready_Answer == " yes" or 
+               Ready_Answer == " yeah" or
+               Ready_Answer == " okay" or 
+               Ready_Answer == " ok" or 
+               Ready_Answer == " k" or 
+               Ready_Answer == " y" or 
+               Ready_Answer == " ye" or 
+               Ready_Answer == " yup" or 
+               Ready_Answer == " yep" or 
+               Ready_Answer == " yeh" or 
+               Ready_Answer == " ya" or 
+               Ready_Answer == " sure" or 
+               Ready_Answer == " sure ok" or 
+               Ready_Answer == " sure okay" or 
+               Ready_Answer == " why not" or 
+               Ready_Answer == " love to" or 
+               Ready_Answer == " ready" or 
+               Ready_Answer == " lets go" or 
+               Ready_Answer == " sounds good" or 
+               Ready_Answer == " sounds great" or 
+               Ready_Answer == " go on then" or 
+               Ready_Answer == " i sure do"):
+                Intro_Shown = False
+                Round = Number_Of_Rounds
+                Game_Complete = False
+                Ready_Shown = True
+            else:
+                Displayed_Ready_Answer = " "
+                Display_End_Prompt = False
+                Intro_Shown = True
+                Play_Game = False
+                Game_Over = True
+                Got_Ready_Answer = False
+                Ready_Shown = True
+
+    # Display Intro:
+    if Intro_Shown == False:
+        cv2.putText(RGB_Flipped_Gray_Frame, "Welcome To", (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                    Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, "Welcome To", (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                    Text_Scale, Intro_Text_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, "The Pixelation Game", (int(Frame_Width * .03), int(Frame_Height * .3)), Text_Font, 
+                    Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, "The Pixelation Game", (int(Frame_Width * .03), int(Frame_Height * .3)), Text_Font, 
+                    Text_Scale, Intro_Text_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+        Intro_Timer = Intro_Timer + 1
+        if Intro_Timer >= 30:
+            Got_Restart_Answer = False
+            Restart_Answer = " "
+            End_Timer = 0
+            Play_Game = True
+            Intro_Shown = True
+
+    # Start Game:
+    if Play_Game == True:
+
+        # Randomly Select An Image:
+        if Image_Selected == False:
+            Image_Selection = random.randint(0,Number_Of_Images-1)
+            Actual_Answer = All_Answers[Image_Selection]
+            Actual_Answer = Actual_Answer.lower()
+            Pixelation_Value = 30 
+            Square_Length = int(Frame_Width / Pixelation_Value)
+            Square_Height = int(Frame_Height / Pixelation_Value)
+            User_Answer = " "
+            Congratulations_Counter = 0
+            Unknown_Image_Timer = 0
+            Points = 100
+            Image_Selected = True
+
+        # Display Selected Image:
+        if Image_Selected == True:
+            RGB_Flipped_Gray_Frame = cv2.imread(Image[Image_Selection])
+
+        # Pixelate Image:
+        for j in range(0, Pixelation_Value, 1):
+            for i in range (0, Pixelation_Value, 1):
+                Square = (RGB_Flipped_Gray_Frame[Square_Height * j : Square_Height * (j + 1), 
+                                                 i * Square_Length : Square_Length * (i + 1)])
+                Pixelation_Colour = (Square[0][0])
+                Square = (RGB_Flipped_Gray_Frame[Square_Height * j : Square_Height * (j + 1), 
+                                                 i * Square_Length : Square_Length * (i + 1)]) = Pixelation_Colour
+
+        # Prompt User To Answer:
+        cv2.putText(RGB_Flipped_Gray_Frame, "Can You Guess Who This Is? ", (int(Frame_Width * .03), int(Frame_Height * .15)), 
+                    Text_Font, Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)        
+        cv2.putText(RGB_Flipped_Gray_Frame, "Can You Guess Who This Is? ", (int(Frame_Width * .03), int(Frame_Height * .15)), 
+                    Text_Font, Text_Scale, Promt_Text_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+
+        # Display Users Answer:
+        cv2.putText(RGB_Flipped_Gray_Frame, str(Displayed_User_Answer), (int(Frame_Width * .005), int(Frame_Height * .3)), 
+                    Text_Font, Text_Scale, Text_Background_Colour, 
+                    Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, str(Displayed_User_Answer), (int(Frame_Width * .005), int(Frame_Height * .3)), 
+                    Text_Font, Text_Scale, User_Answer_Text_Colour, 
+                    Text_Foreground_Thickness, cv2.LINE_AA)
+
+        # Collect Key Presses:
+        if Pressed_Key > 31 and Pressed_Key < 127:
+            User_Answer = User_Answer + chr(Pressed_Key)
+            Displayed_User_Answer = User_Answer
+
+        # Return Key, Pressed:
+        if  Pressed_Key == (13):
+            User_Answer = User_Answer.lower()
+            Got_User_Answer = True
+
+        # Check User Answer:
+        if Got_User_Answer == True:
+                    
+            # If The Answer Is Correct:
+            if User_Answer == Actual_Answer:
+                RGB_Flipped_Gray_Frame = cv2.imread(Image[Image_Selection])
+                cv2.putText(RGB_Flipped_Gray_Frame, "Well Done!!!", (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+                cv2.putText(RGB_Flipped_Gray_Frame, "Well Done!!!", (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                Text_Scale, Win_Text_Line_Two_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+                cv2.putText(RGB_Flipped_Gray_Frame, "You Got It", (int(Frame_Width * .03), int(Frame_Height * .3)), Text_Font, 
+                Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+                cv2.putText(RGB_Flipped_Gray_Frame, "You Got It", (int(Frame_Width * .03), int(Frame_Height * .3)), Text_Font, 
+                Text_Scale, Win_Text_Line_One_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+                if Score_Added == False:
+                    Total_Points = Total_Points + Points
+                    Score_Added = True
+                Right_Answer_Counter = Right_Answer_Counter + 1
+                if Right_Answer_Counter == 30:
+                    Round = Round - 1
+                    Reset = True
+
+            # If User Answer Is Incorrect:
+            if User_Answer != Actual_Answer:
+                cv2.putText(RGB_Flipped_Gray_Frame, "Nope", 
+                            (int(Frame_Width * .03), int(Frame_Height * .45)), Text_Font, Text_Scale, 
+                            Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+                cv2.putText(RGB_Flipped_Gray_Frame, "Nope", 
+                            (int(Frame_Width * .03), int(Frame_Height * .45)), Text_Font, Text_Scale, 
+                            Lose_Text_Line_One_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+                cv2.putText(RGB_Flipped_Gray_Frame, "Hold On A Second", 
+                            (int(Frame_Width * .03), int(Frame_Height * .6)), Text_Font, Text_Scale, 
+                            Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+                cv2.putText(RGB_Flipped_Gray_Frame, "Hold On A Second", 
+                            (int(Frame_Width * .03), int(Frame_Height * .6)), Text_Font, Text_Scale, 
+                            Lose_Text_Line_Two_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+                cv2.putText(RGB_Flipped_Gray_Frame, "I Will Clean It Up A Bit For You", 
+                            (int(Frame_Width * .03), int(Frame_Height * .75)), Text_Font, Text_Scale, 
+                            Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+                cv2.putText(RGB_Flipped_Gray_Frame, "I Will Clean It Up A Bit For You", 
+                            (int(Frame_Width * .03), int(Frame_Height * .75)), Text_Font, Text_Scale, 
+                            Lose_Text_Line_Three_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+                Wrong_Answer_Counter = Wrong_Answer_Counter + 1
+                if Wrong_Answer_Counter == 30:
+                    Continue = True
+
+            # Easter Egg:
+            if User_Answer == " TopTechBoy":
+                Total_Points = Total_Points + 999999999
+
+    # Continue Game:
+    if Continue == True:
+        Points = Points - 10
+        Pixelation_Value = Pixelation_Value + 20 
+        Square_Length = int(Frame_Width / Pixelation_Value)
+        Square_Height = int(Frame_Height / Pixelation_Value)
+        User_Answer = " "
+        Displayed_User_Answer = " "
+        Got_User_Answer = False
+        Wrong_Answer_Counter = 0
+        Continue = False
+
+    # Reset Game:
+    if Reset == True:
+        Points = 100
+        Score_Added = False
+        Pixelation_Value = 30 
+        Square_Length = int(Frame_Width / Pixelation_Value)
+        Square_Height = int(Frame_Height / Pixelation_Value)
+        Image_Selected = False
+        User_Answer = " "
+        Displayed_User_Answer = " "
+        Got_User_Answer = False
+        Right_Answer_Counter = 0
+        Reset = False
+
+    # Display Round:
+    if Play_Game == True or Got_User_Answer == True:
+        cv2.putText(RGB_Flipped_Gray_Frame, ("Round " + str(Round)), (int(Frame_Width * .76), int(Frame_Height * .9)), 
+                    Text_Font, Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)        
+        cv2.putText(RGB_Flipped_Gray_Frame, ("Round " + str(Round)), (int(Frame_Width * .76), int(Frame_Height * .9)), 
+                    Text_Font, Text_Scale, Round_Text_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+
+    # Display Score:
+    if Play_Game == True or Got_User_Answer == True:
+        cv2.putText(RGB_Flipped_Gray_Frame, ("Score " + str(Total_Points)), (int(Frame_Width * .03), int(Frame_Height * .9)), 
+                    Text_Font, Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)        
+        cv2.putText(RGB_Flipped_Gray_Frame, ("Score " + str(Total_Points)), (int(Frame_Width * .03), int(Frame_Height * .9)), 
+                    Text_Font, Text_Scale, Score_Text_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+
+    # The User Appears Not To Know Who The Person Is:
+    if Points <= 30:
+        RGB_Flipped_Gray_Frame = cv2.imread(Image[Image_Selection])
+        cv2.putText(RGB_Flipped_Gray_Frame, ("It Was:" + str(All_Answers[Image_Selection])), 
+                    (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                    Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, ("It Was:" + str(All_Answers[Image_Selection])), 
+                    (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                    Text_Scale, Win_Text_Line_Two_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+        Unknown_Image_Timer = Unknown_Image_Timer + 1
+        if Unknown_Image_Timer >= 40:
+            Score_Added = False
+            Pixelation_Value = 30 
+            Square_Length = int(Frame_Width / Pixelation_Value)
+            Square_Height = int(Frame_Height / Pixelation_Value)
+            Image_Selected = False
+            User_Answer = " "
+            Displayed_User_Answer = " "
+            Got_User_Answer = False
+            Right_Answer_Counter = 0
+            Round = Round - 1
+            Reset = False
+            Points = 100
+
+    # Check For Game Completion:
+    if Round == 0:
+        Intro_Shown = True
+        Intro_Timer = 0
+        Play_Game = False
+        cv2.putText(RGB_Flipped_Gray_Frame, "You Completed The Game", (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, "You Completed The Game", (int(Frame_Width * .03), int(Frame_Height * .15)), Text_Font, 
+                Text_Scale, Completion_Text_Line_One_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, "Congratulations!!!", (int(Frame_Width * .02), int(Frame_Height * .5)), Text_Font, 
+                Text_Scale * 2, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, "Congratulations!!!", (int(Frame_Width * .02), int(Frame_Height * .5)), Text_Font, 
+                Text_Scale * 2, Completion_Text_Line_Two_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, ("Your Score Was: " + str(Total_Points)), 
+                   (int(Frame_Width * .03), int(Frame_Height * .87)), Text_Font, 
+                    Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, ("Your Score Was: " + str(Total_Points)), 
+                   (int(Frame_Width * .03), int(Frame_Height * .87)), Text_Font, 
+                    Text_Scale, Completion_Text_Line_Three_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+        Congratulations_Counter = Congratulations_Counter + 1
+        if Congratulations_Counter == 50:
+            Displayed_Restart_Answer = " "
+            Display_End_Prompt = True
+            Game_Complete = True
+
+    # Promt User For Restart Answer:
+    if Game_Complete == True:
+        if Display_End_Prompt == True:
+            Round = Number_Of_Rounds
+            cv2.putText(RGB_Flipped_Gray_Frame, "Would You Like To Play Again?", (int(Frame_Width * .03), int(Frame_Height * .15)), 
+                        Text_Font, Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+            cv2.putText(RGB_Flipped_Gray_Frame, "Would You Like To Play Again?", (int(Frame_Width * .03), int(Frame_Height * .15)), 
+                        Text_Font, Text_Scale, Completion_Text_Line_One_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+
+        # Display Restart Answer:
+        cv2.putText(RGB_Flipped_Gray_Frame, str(Displayed_Restart_Answer), (int(Frame_Width * .005), int(Frame_Height * .3)), 
+                    Text_Font, Text_Scale, Text_Background_Colour, 
+                    Text_Background_Thickness, cv2.LINE_AA)
+        cv2.putText(RGB_Flipped_Gray_Frame, str(Displayed_Restart_Answer), (int(Frame_Width * .005), int(Frame_Height * .3)), 
+                    Text_Font, Text_Scale, User_Answer_Text_Colour, 
+                    Text_Foreground_Thickness, cv2.LINE_AA)
+
+        # Collect Key Presses:
+        if Pressed_Key > 31 and Pressed_Key < 127:
+            Restart_Answer = Restart_Answer + chr(Pressed_Key)
+            Displayed_Restart_Answer = Restart_Answer
+
+        # Return Key, Pressed:
+        if  Pressed_Key == (13):
+            Restart_Answer = Restart_Answer.lower()
+            Got_Restart_Answer = True
+
+        # Check User Answer:
+        if Got_Restart_Answer == True:
+            if (Restart_Answer == " yes" or 
+               Restart_Answer == " yeah" or
+               Restart_Answer == " okay" or 
+               Restart_Answer == " ok" or 
+               Restart_Answer == " k" or 
+               Restart_Answer == " y" or 
+               Restart_Answer == " ye" or 
+               Restart_Answer == " yup" or 
+               Restart_Answer == " yep" or 
+               Restart_Answer == " yeh" or 
+               Restart_Answer == " ya" or 
+               Restart_Answer == " sure" or 
+               Restart_Answer == " sure ok" or 
+               Restart_Answer == " sure okay" or 
+               Restart_Answer == " why not" or 
+               Restart_Answer == " love to" or 
+               Restart_Answer == " ready" or 
+               Restart_Answer == " lets go" or 
+               Restart_Answer == " sounds good" or 
+               Restart_Answer == " sounds great" or 
+               Restart_Answer == " go on then" or 
+               Restart_Answer == " i sure do"):
+                Intro_Shown = False
+                Round = Number_Of_Rounds
+                Points = 100
+                Total_Points = 0
+                Game_Complete = False
+            else:
+                Displayed_Restart_Answer = " "
+                Display_End_Prompt = False
+                Intro_Shown = True
+                Play_Game = False
+                Game_Over = True
+                Ready_Shown = True
+                Got_Restart_Answer = False
+
+    # Outro Text:
+    if Game_Over == True:
+            cv2.putText(RGB_Flipped_Gray_Frame, "Okay, Thanks For Playing", (int(Frame_Width * .03), int(Frame_Height * .15)), 
+                        Text_Font, Text_Scale, Text_Background_Colour, Text_Background_Thickness, cv2.LINE_AA)
+            cv2.putText(RGB_Flipped_Gray_Frame, "Okay, Thanks For Playing", (int(Frame_Width * .03), int(Frame_Height * .15)), 
+                        Text_Font, Text_Scale, Completion_Text_Line_One_Colour, Text_Foreground_Thickness, cv2.LINE_AA)
+            Game_Over_Timer = Game_Over_Timer + 1
+            if Game_Over_Timer >= 20:
+                Pressed_Key = ord('*')
+
+
+    # Generate Close Button:
+    cv2.rectangle(RGB_Flipped_Gray_Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                 (Frame_Width, int(Frame_Height * .042)), White, Solid)
+    cv2.putText(RGB_Flipped_Gray_Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                Close_Button_Font, Close_Button_Font_Scale * 2, Black, Close_Button_Font_Thickness, cv2.LINE_AA)
+
+    # Determin Mouse Positions:
+    if Mouse_Positions == 0:
+
+        # If Mouse Position Inside Close Button:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .042):
+            cv2.rectangle(RGB_Flipped_Gray_Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                         (Frame_Width, int(Frame_Height * .042)), Dark_Red, Solid)
+            cv2.putText(RGB_Flipped_Gray_Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                        Close_Button_Font, Close_Button_Font_Scale * 2, White, Close_Button_Font_Thickness, cv2.LINE_AA)
+
+            # Begin Close Button Interaction Timer:
+            if Button_Interaction_Timer == True:
+                Iteraction_Start_Time = time.time()
+                Button_Interaction_Timer = False
+            Iteraction_Current_Time = time.time()
+            Interaction_Time = Iteraction_Current_Time - Iteraction_Start_Time
+
+            # Determin Close Text Position:
+            if Got_Button_Text_Position == False:
+                Close_X_Position = Mouse_X_Position
+                if Mouse_X_Position > 1235:
+                    Close_X_Position = 1235
+                Close_Y_Position = Mouse_Y_Position + 30
+                Got_Button_Text_Position = True
+
+            # If Interaction Time Exceeded, Display Close Text:
+            if Interaction_Time >= 1.6:
+                if Display_Button_Text == True:
+                    cv2.rectangle(RGB_Flipped_Gray_Frame, (Close_X_Position - 2, Close_Y_Position - 14), 
+                                 (Close_X_Position + 35, Close_Y_Position + 5), Cream, Solid)
+                    cv2.rectangle(RGB_Flipped_Gray_Frame, (Close_X_Position - 2, Close_Y_Position - 14), 
+                                 (Close_X_Position + 35, Close_Y_Position + 5), Black, Close_Button_Line_Thickness)
+                    cv2.putText(RGB_Flipped_Gray_Frame, "Close", (Close_X_Position, Close_Y_Position), 
+                                Close_Button_Font, Close_Button_Font_Scale, (0, 0, 0), Close_Button_Font_Thickness, cv2.LINE_AA)
+
+                # If Mouse Position Interacts With Close Text:
+                if Mouse_X_Position > Close_X_Position - 2 and Mouse_Y_Position > Close_Y_Position - 14:
+                    Display_Button_Text = False
+
+                # Close Text, Display Time Exceeded:
+                if Interaction_Time >= 5:
+                    Display_Button_Text = False
+
+        # If Mouse Position Outside Close Button, Reset:
+        if Mouse_X_Position < int(Frame_Width - Frame_Height * .063) or Mouse_Y_Position > int(Frame_Height * .05):
+            Button_Interaction_Timer = True
+            Iteraction_Start_Time = 0
+            Interaction_Time = 0
+            Got_Button_Text_Position = False
+            Display_Button_Text = True
+
+    # Check For Close Button Click:
+    if Mouse_Event == 1:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .044):
+            Pressed_Key = ord('*')
+
+    # Display Frame:
+    cv2.imshow('The Pixelation Game Window', RGB_Flipped_Gray_Frame)
+    cv2.moveWindow('The Pixelation Game Window', 0, 0)
+
+    # If Close Button Pressed:
+    if Pressed_Key == ord('*'):
+        break
+Camera.release()
