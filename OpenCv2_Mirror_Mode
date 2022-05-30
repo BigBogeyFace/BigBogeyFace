@@ -1,0 +1,66 @@
+
+# Mirror Mode By BigBogeyFace
+
+# Import Open cv2 Library
+import cv2
+import numpy
+
+# Frame Setup:
+Frame_Width = 1280
+Frame_Height = 720
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Colours:
+Red = (0, 0, 255)
+Orange = (0, 127, 255)
+Yellow = (0, 255, 255)
+Green = (0, 255, 0)
+Blue = (255, 0, 0)
+Indigo = (128, 0, 55)
+Violet = (250, 0, 175)
+
+# Text:
+Text = ("Mirror Mode")
+Origin = int(Frame_Width * .02),int(Frame_Height * .93)
+Font = cv2.FONT_HERSHEY_SIMPLEX 
+Font_Scale = 1 
+Text_Color = Orange 
+Text_Thickness = 2 
+
+# Create Empty Frame:
+Empty_Frame = numpy.zeros([Frame_Height, Frame_Width, 3], dtype = numpy.uint8)
+
+# Begin Program Loop:
+while True:
+
+    # Capture Frame:
+    Ignore, Frame = Camera.read()
+
+    # Flip Frame:
+    Flip_Frame = cv2.flip(Frame, 1)
+
+    # Text On Frame:
+    cv2.putText(Flip_Frame, Text, (Origin), Font, Font_Scale, Text_Color, Text_Thickness, cv2.LINE_AA) 
+
+    # Take Half Of Flipped Frame Into Empty Frame:
+    Empty_Frame [0: Frame_Height, 0: int(Frame_Width * .5)] = Flip_Frame [0: Frame_Height, 0: int(Frame_Width * .5)]
+
+    # Flip Half Of Flipped Frame:
+    Mirror_Frame = cv2.flip(Empty_Frame, 1)
+
+    # Compound Both Halves:
+    Compound_Frame = Empty_Frame + Mirror_Frame
+
+    # Display Compounded Frame:
+    cv2.imshow('Mirror Mode Window', Compound_Frame)
+    cv2.moveWindow('Mirror Mode Window', 0, 0)
+
+    # Check For "q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
