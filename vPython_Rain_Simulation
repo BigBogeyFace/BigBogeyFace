@@ -1,0 +1,128 @@
+
+# Rain Simulation By BigBogeyFace:
+
+# Import Essentials:
+from vpython import *
+import random
+
+# Screen Setup:
+Screen_Width = 1150
+Screen_Height = int (Screen_Width * .5)
+Canvas = canvas (width = Screen_Width, height = Screen_Height)
+
+# Global Perameters:
+Box_Length = 200
+Box_Height = 100
+Box_Width = 100
+
+# Garden Dimensions:
+Grass_Height = Box_Height * .01
+Mud_Depth = Box_Height * .01
+Lawn_Length = Box_Length
+Lawn_Width = Box_Width
+
+# Global Variables:
+Number_Of_Clouds = 5
+Number_Of_Cloud_Elements = 80
+Number_Of_Raindrops = Number_Of_Clouds * Number_Of_Cloud_Elements
+Rain_droplet_Radius = 1
+Rain_Colour = color.blue
+Animation_Rate = 50
+
+# Constant Lists (Arrays):
+Cloud_X = []
+Cloud_Y = []
+Cloud_Z = []
+Element_X = []
+Element_Y = []
+Element_Z = []
+
+# Create The Grass:
+Grass = box(texture = 'Grass.jpg', length = Lawn_Length, height = Grass_Height, 
+                        width = Lawn_Width, pos = vector(0, - 50, 0), shininess = 0)
+
+# Create The Earth:
+Mud = box(texture = 'Mud.jpg', length = Lawn_Length, height = Mud_Depth, 
+                        width = Lawn_Width, pos = vector(0, - 51, 0), shininess = 0)
+
+# Cloud Positions:
+for i in range (0, Number_Of_Clouds, 1):
+    Cloud_X_Pos = random.randint ( - 70, 70)
+    Cloud_Y_Pos = random.randint (45, 85)
+    Cloud_Z_Pos = random.randint ( - 30, 30)
+    Cloud_X.append(Cloud_X_Pos)
+    Cloud_Y.append(Cloud_Y_Pos)
+    Cloud_Z.append(Cloud_Z_Pos)
+        
+    # Cloud Element Positions:
+    for j in range (0, Number_Of_Cloud_Elements, 1):
+        Element_X_Pos = random.randint ( - 30, 30)
+        Element_Y_Pos = random.randint ( - 10, 10)
+        Element_Z_Pos = random.randint ( - 20, 20)
+        Element_X.append(Element_X_Pos)
+        Element_Y.append(Element_Y_Pos)
+        Element_Z.append(Element_Z_Pos)
+        Cloud_Element_Size = random.randint (5, 10)
+
+        # Create The Clouds:
+        sphere(radius = Cloud_Element_Size, color = color.white, shininess = 0, opacity = .2,
+        pos = vector(Cloud_X_Pos + Element_X_Pos,Cloud_Y_Pos + Element_Y_Pos,Cloud_Z_Pos + Element_Z_Pos))
+
+# Name Each And Every Rain Droplet:
+Raindrop_Counter = 0
+Raindrop_Number = []
+for i in range (0, Number_Of_Clouds, 1):
+    for j in range (0, Number_Of_Cloud_Elements, 1):
+        Raindrop_Number.append (str (Raindrop_Counter))
+        Raindrop_Counter = Raindrop_Counter + 1
+
+# Initialise Raindrop Positions::
+Raindrop_Counter = 0
+Rain_Height = []
+for i in range (0, Number_Of_Clouds, 1):
+    for j in range (0, Number_Of_Cloud_Elements, 1):
+        Drop_X = Cloud_X[i] + Element_X[j]
+        Drop_Y = random.randint( - 50, 50)
+        Drop_Z = Cloud_Z[i] + Element_Z[j]
+        Rain_Height.append(Drop_Y)
+        Raindrop_Number[Raindrop_Counter] = sphere(radius = Rain_droplet_Radius, 
+                                            color = Rain_Colour, shininess = 10, 
+                                            pos = vector(Drop_X, Drop_Y, Drop_Z), opacity = .3)
+        Raindrop_Counter = Raindrop_Counter + 1
+
+# Begin Program Loop:
+while True:
+
+    # Animation Rate:
+    rate(Animation_Rate)
+
+    # Let It Rain:
+    Rain_Fall_Counter = 0
+    for i in range (0, Number_Of_Clouds, 1):
+        for j in range (0, Number_Of_Cloud_Elements, 1):
+            New_Drop_X = Cloud_X[i] + Element_X[j]
+            New_Drop_Y = Rain_Height[Rain_Fall_Counter]
+            New_Drop_Z = Cloud_Z[i] + Element_Z[j]
+            Raindrop_Number[Rain_Fall_Counter].pos = vector(New_Drop_X, New_Drop_Y, New_Drop_Z)
+            Rain_Height[Rain_Fall_Counter] = Rain_Height[Rain_Fall_Counter] - 1
+            if New_Drop_Y < - 50:
+                Rain_Height[Rain_Fall_Counter] = 50
+            Rain_Fall_Counter = Rain_Fall_Counter + 1
+            if Rain_Fall_Counter == Number_Of_Raindrops:
+                Rain_Fall_Counter = 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Many Thanks To Mr Paul McWhorter For His Most Excellent Series Of YouTube Lessons
+# You May Find A Link To His Channel In The Description
+# I Wrote This Program Because I Love The Rain...
