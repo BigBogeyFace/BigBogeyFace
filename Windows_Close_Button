@@ -1,0 +1,137 @@
+
+# Windows Close Button By BigBogeyFace:
+
+# Import Essentails:
+import cv2
+import time
+
+# Setup Frame:
+Frame_Width = 1280
+Frame_Height = 720
+ 
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+ 
+# Setup Mouse Call Back:
+Mouse_Event = 0
+Mouse_Positions = 0
+Mouse_X_Position = 0
+Mouse_Y_Position = 0
+def Mouse_Click(event, Mouse_Position_X, Mouse_Position_Y, flags, perameters):
+    global Mouse_Event
+    global Mouse_Positions
+    global Mouse_X_Position
+    global Mouse_Y_Position
+    if event == cv2.EVENT_MOUSEMOVE:
+        Mouse_X_Position = (Mouse_Position_X)
+        Mouse_Y_Position = (Mouse_Position_Y)
+        Mouse_Positions = event
+    if event == cv2.EVENT_LBUTTONDOWN:
+        Mouse_Event = event
+cv2.namedWindow('Close Button Window')
+cv2.setMouseCallback('Close Button Window', Mouse_Click)
+
+# Colours:
+Dark_Red = (30, 30, 200)
+White = (255, 255, 255)
+Gray = (127, 127, 127)
+Black = (0, 0, 0)
+Cream = (236, 255, 255)
+
+# Global Variables:
+Button_Font = cv2.FONT_HERSHEY_SIMPLEX
+Button_Font_Size = .4
+Button_Font_Thickness = 1
+Button_Line_Thickness = 1
+Solid = - 1
+
+# Setup Functionality:
+Run_Interaction_Timer = True
+Got_Text_Position = False
+Display_Text = True
+
+# Begin Program Loop:
+while True:
+
+    # Initialise waitKey:
+    Pressed_Key = cv2.waitKey(1) & 0xFF
+
+    # Frame Management:
+    Ignore, Frame = Camera.read()
+    Gray_Frame=cv2.cvtColor(Frame, cv2.COLOR_BGR2GRAY)
+    Flipped_Gray_Frame = cv2.flip(Gray_Frame, 1)
+    RGB_Flipped_Gray_Frame=cv2.cvtColor(Flipped_Gray_Frame, cv2.COLOR_GRAY2BGR)
+
+    # Generate Quit Button:
+    cv2.rectangle(RGB_Flipped_Gray_Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                 (Frame_Width, int(Frame_Height * .042)), White, Solid)
+    cv2.putText(RGB_Flipped_Gray_Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                Button_Font, Button_Font_Size * 2, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Determin Mouse Positions:
+    if Mouse_Positions == 0:
+
+        # If Mouse Position Inside "Close" Button:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .042):
+            cv2.rectangle(RGB_Flipped_Gray_Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                         (Frame_Width, int(Frame_Height * .042)), Dark_Red, Solid)
+            cv2.putText(RGB_Flipped_Gray_Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                        Button_Font, Button_Font_Size * 2, White, Button_Font_Thickness, cv2.LINE_AA)
+
+            # Begin "Close" Button Interaction Timer:
+            if Run_Interaction_Timer == True:
+                Iteraction_Start_Time = time.time()
+                Run_Interaction_Timer = False
+            Iteraction_Current_Time = time.time()
+            Interaction_Time = Iteraction_Current_Time - Iteraction_Start_Time
+
+            # Determin "Close" Text Position:
+            if Got_Text_Position == False:
+                Close_X_Position = Mouse_X_Position
+                if Mouse_X_Position > 1235:
+                    Close_X_Position = 1235
+                Close_Y_Position = Mouse_Y_Position + 30
+                Got_Text_Position = True
+
+            # If Interaction Time Exceeded (Display "Close" Text):
+            if Interaction_Time >= 1.6:
+                if Display_Text == True:
+                    cv2.rectangle(RGB_Flipped_Gray_Frame, (Close_X_Position - 2, Close_Y_Position - 14), 
+                                 (Close_X_Position + 35, Close_Y_Position + 5), Cream, Solid)
+                    cv2.rectangle(RGB_Flipped_Gray_Frame, (Close_X_Position - 2, Close_Y_Position - 14), 
+                                 (Close_X_Position + 35, Close_Y_Position + 5), Black, Button_Line_Thickness)
+                    cv2.putText(RGB_Flipped_Gray_Frame, "Close", (Close_X_Position, Close_Y_Position), 
+                                Button_Font, Button_Font_Size, (0, 0, 0), Button_Font_Thickness, cv2.LINE_AA)
+
+                # If Mouse Position Interacts With "Close" Text:
+                if Mouse_X_Position > Close_X_Position - 2 and Mouse_Y_Position > Close_Y_Position - 14:
+                    Display_Text = False
+
+                # "Close" Text Display Time Exceeded:
+                if Interaction_Time >= 5:
+                    Display_Text = False
+
+        # If Mouse Position Outside Quit Button (Reset):
+        if Mouse_X_Position < int(Frame_Width - Frame_Height * .063) or Mouse_Y_Position > int(Frame_Height * .05):
+            Run_Interaction_Timer = True
+            Iteraction_Start_Time = 0
+            Interaction_Time = 0
+            Got_Text_Position = False
+            Display_Text = True
+
+    # Check For "Close" Button Click:
+    if Mouse_Event == 1:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .044):
+            Pressed_Key = ord('c')
+
+    # Display Frame:
+    cv2.imshow('Close Button Window', RGB_Flipped_Gray_Frame)
+    cv2.moveWindow('Close Button Window', 0, 0)
+
+    # If Quit Button Pressed:
+    if Pressed_Key == ord('c'):
+        break
+Camera.release()
