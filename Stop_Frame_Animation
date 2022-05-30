@@ -1,0 +1,223 @@
+
+# Stop Frame Animation By BigBogeyFace
+
+# Import Essentials:
+import cv2
+import time
+
+# Setup Frame = 720p:
+Frame_Width = 1280
+Frame_Height = 720
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Setup Mouse Call Back:
+Mouse_Event = 0
+Mouse_Positions = 0
+Mouse_X_Position = 0
+Mouse_Y_Position = 0
+def Mouse_Click(event, Mouse_Position_X, Mouse_Position_Y, flags, perameters):
+    global Mouse_Event
+    global Mouse_Positions
+    global Mouse_X_Position
+    global Mouse_Y_Position
+    if event == cv2.EVENT_MOUSEMOVE:
+        Mouse_X_Position = (Mouse_Position_X)
+        Mouse_Y_Position = (Mouse_Position_Y)
+        Mouse_Positions = event
+    if event == cv2.EVENT_LBUTTONDOWN:
+        Mouse_Event = event
+cv2.namedWindow('Stop Frame Animation Window')
+cv2.setMouseCallback('Stop Frame Animation Window', Mouse_Click)
+
+# Colours:
+Dark_Red = (30, 30, 200)
+Orange = (5, 175, 255)
+Green = (0, 255, 0)
+Cyan = (255, 255, 0)
+White = (255, 255, 255)
+Gray = (127, 127, 127)
+Black = (0, 0, 0)
+Cream = (236, 255, 255)
+
+# Global Variables:
+Font = cv2.FONT_HERSHEY_SIMPLEX
+Font_Thickness = 1
+Font_Scale = .4
+Solid = - 1
+File_Number = 0
+Play_File_Number = 0
+Play = False
+Last_Frame_Play_Timer = 0
+Play_Last_Frame = False
+Close_Button_Line_Thickness = 1
+Run_Interaction_Timer = True
+Got_Text_Position = False
+Display_Text = True
+Play_Last_Frame_Time = 10
+
+# Begin Program Loop:
+while True:
+
+    # Initialise waitKey:
+    Pressed_Key = cv2.waitKey(1) & 0xFF
+
+    # Capture & Manage Frame:
+    Ignore, Frame = Camera.read()
+
+    # Display Capture Button:
+    cv2.rectangle(Frame, (Frame_Width - 90, Frame_Height - 70), (Frame_Width, Frame_Height), White, Solid) 
+    cv2.putText(Frame, "Capture", (Frame_Width - 74, int(Frame_Height * .935)), Font, Font_Scale, Black, Font_Thickness)
+
+    # Check For Capture Button Interaction:
+    if Mouse_Positions == 0:
+        if Mouse_X_Position > Frame_Width - 90 and Mouse_Y_Position > Frame_Height - 70:
+            cv2.rectangle(Frame, (Frame_Width - 90, Frame_Height - 70), (Frame_Width, Frame_Height), Cyan, Solid) 
+            cv2.putText(Frame, "Capture", (Frame_Width - 74, int(Frame_Height * .935)), Font, Font_Scale, Black, Font_Thickness)
+
+    # Display Play Button:
+    cv2.rectangle(Frame, (0, Frame_Height - 70), (80, Frame_Height), White, Solid) 
+    cv2.putText(Frame, "Play", (27, int(Frame_Height * .937)), Font, Font_Scale, Black, Font_Thickness)
+
+    # Check For Play Button Interaction:
+    if Mouse_Positions == 0:
+        if Mouse_X_Position < 80 and Mouse_Y_Position > Frame_Height - 70:
+            cv2.rectangle(Frame, (0, Frame_Height - 70), (80, Frame_Height), Green, Solid) 
+            cv2.putText(Frame, "Play", (27, int(Frame_Height * .937)), Font, Font_Scale, Black, Font_Thickness)
+
+    # Display Last Frame Button:
+    cv2.rectangle(Frame, (0, 0), (80, 40), White, Solid) 
+    cv2.putText(Frame, "Last", (24, 15), Font, Font_Scale, Black, Font_Thickness) 
+    cv2.putText(Frame, "Frame", (18, 32), Font, Font_Scale, Black, Font_Thickness) 
+
+    # Check For Last Frame Interaction:
+    if Mouse_Positions == 0:
+        if Mouse_X_Position < 80 and Mouse_Y_Position < 40:
+            cv2.rectangle(Frame, (0, 0), (80, 40), Orange, Solid) 
+            cv2.putText(Frame, "Last", (24, 15), Font, Font_Scale, Black, Font_Thickness)
+            cv2.putText(Frame, "Frame", (18, 32), Font, Font_Scale, Black, Font_Thickness)
+
+    # Capture Button Clicked:
+    if Mouse_Event == 1:
+        if Mouse_X_Position > Frame_Width - 90 and Mouse_Y_Position > Frame_Height - 70:
+            time.sleep(.1)
+            Mouse_Event = 0
+            
+            # Save:
+            cv2.imwrite('Stop_Frame_Animation/Frame_Number_' + str(File_Number) + '.png', Frame) 
+            File_Number = File_Number + 1
+
+    # Stop Play At The End Of Files:
+    if Play_File_Number == File_Number:
+        Play = False
+        Play_File_Number = 0
+
+    # Play Button Clicked:
+    if Mouse_Event == 1 and File_Number > 0:
+        if Mouse_X_Position < 80 and Mouse_Y_Position > Frame_Height - 70:
+            Play = True
+            Mouse_Event = 0
+            time.sleep(.1)
+
+    # Play:
+    if Play == True:
+        Frame = cv2.imread('Stop_Frame_Animation/Frame_Number_' + str(Play_File_Number) + '.png', 1)
+        Play_File_Number = Play_File_Number + 1
+        time.sleep(.001)
+
+    # Last Frame Button Clicked:
+    if Mouse_Event == 1 and File_Number > 0:
+        if Mouse_X_Position < 80 and Mouse_Y_Position < 40:
+            Play_Last_Frame = True
+            time.sleep(.1)
+            Mouse_Event = 0
+
+    # Display Last Frame:
+    if Play_Last_Frame == True:
+        Last_Frame = File_Number - 1
+        Frame = cv2.imread('Stop_Frame_Animation/Frame_Number_' + str(Last_Frame) + '.png', 1)
+        Last_Frame_Play_Timer = Last_Frame_Play_Timer + 1
+
+        # Begin Last Frame Timer:
+        if Last_Frame_Play_Timer >= Play_Last_Frame_Time:
+            Play_Last_Frame = False
+
+    # Reset Last Frame Timer:
+    if Play_Last_Frame == False:
+        Last_Frame_Play_Timer = 0
+
+    # Display Close Button:
+    cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                 (Frame_Width, int(Frame_Height * .042)), White, Solid)
+    cv2.putText(Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                Font, Font_Scale * 2, Black, Font_Thickness, cv2.LINE_AA)
+
+    # Check For Close Button Interaction:
+    if Mouse_Positions == 0:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .042):
+            cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                         (Frame_Width, int(Frame_Height * .042)), Dark_Red, Solid)
+            cv2.putText(Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                        Font, Font_Scale * 2, White, Font_Thickness, cv2.LINE_AA)
+
+            # Begin Close Button Interaction Timer:
+            if Run_Interaction_Timer == True:
+                Iteraction_Start_Time = time.time()
+                Run_Interaction_Timer = False
+            Iteraction_Current_Time = time.time()
+            Interaction_Time = Iteraction_Current_Time - Iteraction_Start_Time
+
+            # Determine Close Text Promp Position:
+            if Got_Text_Position == False:
+                Close_X_Position = Mouse_X_Position
+                if Mouse_X_Position > 1235:
+                    Close_X_Position = 1235
+                Close_Y_Position = Mouse_Y_Position + 30
+                Got_Text_Position = True
+            if Interaction_Time >= 1.6:
+                if Display_Text == True:
+
+                    # Display Close Text Prompt:
+                    cv2.rectangle(Frame, (Close_X_Position - 2, Close_Y_Position - 14), 
+                                 (Close_X_Position + 35, Close_Y_Position + 5), Cream, Solid)
+                    cv2.rectangle(Frame, (Close_X_Position - 2, Close_Y_Position - 14), 
+                                 (Close_X_Position + 35, Close_Y_Position + 5), Black, Close_Button_Line_Thickness)
+                    cv2.putText(Frame, "Close", (Close_X_Position, Close_Y_Position), 
+                                Font, Font_Scale, (0, 0, 0), Font_Thickness, cv2.LINE_AA)
+
+                # Check For Close Text Prompt Interaction:
+                if Mouse_X_Position > Close_X_Position - 2 and Mouse_Y_Position > Close_Y_Position - 14:
+                    Display_Text = False
+                if Interaction_Time >= 5:
+                    Display_Text = False
+        
+        # If Close Text Prompt Interaction:
+        if Mouse_X_Position < int(Frame_Width - Frame_Height * .063) or Mouse_Y_Position > int(Frame_Height * .05):
+            Run_Interaction_Timer = True
+            Iteraction_Start_Time = 0
+            Interaction_Time = 0
+            Got_Text_Position = False
+            Display_Text = True
+
+    # Close Button Clicked:
+    if Mouse_Event == 1:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .044):
+            Pressed_Key = ord('*')
+
+    # Title Bar:
+    cv2.rectangle(Frame, (int(Frame_Width * .43) , 0), (int(Frame_Width * .57), 40), White, Solid) 
+    cv2.putText(Frame, "Stop Frame Animation", (int(Frame_Width * .445), 24), Font, Font_Scale, Black, Font_Thickness) 
+
+
+    # Display Window:
+    cv2.imshow('Stop Frame Animation Window', Frame)
+    cv2.moveWindow('Stop Frame Animation Window', 0, 0)
+
+    # If Close Button Pressed:
+    if Pressed_Key == ord('*'):
+        break
+Camera.release()
