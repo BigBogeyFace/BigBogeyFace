@@ -1,0 +1,321 @@
+
+# Emotion Estimation By BigBogeyFace:
+# Note: This program utilises simple face proportion principles
+
+# Import Essentials:
+import cv2
+import dlib
+import time
+
+# Setup Frame:
+Frame_Width = 1280
+Frame_Height = 720
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+ 
+# Setup Mouse Call Back:
+Mouse_Event = 0
+Mouse_Position = 0
+Specialevt = 0
+Mouse_X_Position=0
+Mouse_Y_Position=0
+def Mouse_Click(event, Mouse_Position_X, Mouse_Position_Y, flags, perameters):
+    global Mouse_Event
+    global Mouse_Position
+    global Specialevt
+    global Mouse_X_Position
+    global Mouse_Y_Position
+    if event == cv2.EVENT_MOUSEMOVE:
+        Mouse_X_Position=(Mouse_Position_X)
+        Mouse_Y_Position=(Mouse_Position_Y)
+        Specialevt=event
+    if event == cv2.EVENT_LBUTTONDOWN:
+        Mouse_Position = (Mouse_Position_X, Mouse_Position_Y)
+        Mouse_Event = event
+cv2.namedWindow('Emotion Estimation Window')
+cv2.setMouseCallback('Emotion Estimation Window',Mouse_Click)
+
+# Colours:
+Dark_Red = (30, 30, 200)
+Red = (0, 0, 255)
+Orange = (10, 150, 255)
+Yellow = (0, 255, 255)
+Green = (0, 255, 0)
+Blue = (255, 0, 0)
+Cyan = (255, 255, 0)
+White = (255, 255, 255)
+Cream = (236, 255, 255)
+Gray = (127, 127, 127)
+Black = (0, 0, 0)
+
+# Global Variables:
+Button_Font = cv2.FONT_HERSHEY_SIMPLEX
+Button_Font_Size = .4
+Button_Font_Thickness = 1
+Button_Line_Thickness = 1
+Solid = - 1
+Font = cv2.FONT_HERSHEY_SIMPLEX
+Font_Size = .5
+Font_Size_Small = .3
+Font_Thickness = 1
+Font_Thickness_Small = 1
+Circle_Radius = 1
+Rectangle_Line_Thickness = 2
+Info_Rectangle_Colour = Gray
+
+# Face Detection And Shape Prediction:
+Face_Detector = dlib.get_frontal_face_detector()
+Face_Shape_Predictor = dlib.shape_predictor("C:/Users/BigBo/Documents/Python/shape_predictor_68_face_landmarks.dat")
+
+# Setup Button Functionality:
+Run_Interaction_Timer = True
+Got_Text_Position = False
+Display_Text = True
+
+# Initialise Emotions:
+Angry = False
+Shock = False
+Surprise = False
+Inquisitive = False
+Happy = False
+
+# Begin Program Loop:
+while True:
+
+    # If
+    Found_Face = False
+
+    # Initialise waitKey Function:
+    Pressed_Key = cv2.waitKey(1) & 0xFF
+
+    # Frame Management:
+    Ignore, Frame = Camera.read()
+    Gray_Frame = cv2.cvtColor(Frame, cv2.COLOR_BGR2GRAY)
+    Flipped_Gray_Frame = cv2.flip(Gray_Frame, 1)
+    RGB_Flipped_Gray_Frame = cv2.cvtColor(Flipped_Gray_Frame, cv2.COLOR_GRAY2BGR)
+
+    # Infomation Rectangle:
+    cv2.rectangle(RGB_Flipped_Gray_Frame, (int(Frame_Width * .43), int(Frame_Height * .84)), 
+                                          (int(Frame_Width * .57), int(Frame_Height * .91)), Info_Rectangle_Colour, Solid)
+    cv2.rectangle(RGB_Flipped_Gray_Frame, (int(Frame_Width * .43), int(Frame_Height * .84)), 
+                                          (int(Frame_Width * .57), int(Frame_Height * .91)), Black, Rectangle_Line_Thickness)
+
+    # Find Faces:
+    Faces = Face_Detector(Flipped_Gray_Frame)
+    for Face in Faces:
+        Landmarks = Face_Shape_Predictor(Flipped_Gray_Frame, Face)   
+
+        # Annotate Landmarks (For Development Purposes):
+        for Individual_Landmarks in range (0, 68, 1):
+            Landmark_X_Position = Landmarks.part(Individual_Landmarks).x
+            Landmark_Y_Position = Landmarks.part(Individual_Landmarks).y
+            cv2.putText(RGB_Flipped_Gray_Frame, str(Individual_Landmarks), (int(Landmark_X_Position), int(Landmark_Y_Position)), 
+                        Font, Font_Size_Small, Black, Font_Thickness_Small)
+            cv2.circle(RGB_Flipped_Gray_Frame, (int(Landmark_X_Position), int(Landmark_Y_Position)), Circle_Radius, Black, Solid)
+        
+        # Unpack Data:
+        Left_Eyebrow_Top_X = Landmarks.part(19).x
+        Left_Eyebrow_Top_Y = Landmarks.part(19).y        
+        Glabella_Left_X = Landmarks.part(21).x
+        Glabella_Left_Y = Landmarks.part(21).y
+        Glabella_Right_X = Landmarks.part(22).x
+        Glabella_Right_Y = Landmarks.part(22).y        
+        Right_Eyebrow_Top_X = Landmarks.part(24).x
+        Right_Eyebrow_Top_Y = Landmarks.part(24).y
+        Radix_X = Landmarks.part(27).x
+        Radix_Y = Landmarks.part(27).y  
+        Left_Eye_Outside_X = Landmarks.part(36).x
+        Left_Eye_Outside_Y = Landmarks.part(36).y          
+        Septum_X = Landmarks.part(33).x
+        Septum_Y = Landmarks.part(33).y  
+        Left_Eye_Top_X = Landmarks.part(37).x
+        Left_Eye_Top_Y = Landmarks.part(37).y
+        Right_Eye_Inside_X = Landmarks.part(42).x
+        Right_Eye_Inside_Y = Landmarks.part(42).y          
+        Right_Eye_Top_X = Landmarks.part(44).x
+        Right_Eye_Top_Y = Landmarks.part(44).y        
+        Right_Eye_Outside_X = Landmarks.part(45).x
+        Right_Eye_Outside_Y = Landmarks.part(45).y  
+        Mouth_Left_X = Landmarks.part(48).x
+        Mouth_Left_Y = Landmarks.part(48).y        
+        Mouth_Top_X = Landmarks.part(51).x
+        Mouth_Top_Y = Landmarks.part(51).y 
+        Mouth_Right_X = Landmarks.part(54).x
+        Mouth_Right_Y = Landmarks.part(54).y        
+        Mouth_Bottom_X = Landmarks.part(57).x
+        Mouth_Bottom_Y = Landmarks.part(57).y
+
+        # Calculate Distances:
+        Eye_Length = Right_Eye_Outside_X - Right_Eye_Inside_X
+        Glabella_Compound_Length = Radix_Y - Glabella_Right_Y + Radix_Y - Glabella_Left_Y
+        Mouth_Height = Mouth_Bottom_Y - Mouth_Top_Y
+        Right_Eyebrow_Height = Right_Eye_Top_Y - Right_Eyebrow_Top_Y
+        Left_Eyebrow_Height = Left_Eye_Top_Y - Left_Eyebrow_Top_Y
+        Left_Mouth_Size = Septum_X - Mouth_Left_X
+        Right_Mouth_Size = Mouth_Right_X - Septum_X
+        Mouth_Nose_Distance = Mouth_Top_Y - Septum_Y
+
+        # None Emotions:
+        if Glabella_Compound_Length >= Eye_Length:
+            Angry = False
+            Info_Rectangle_Colour = Gray
+        if Mouth_Height <= Eye_Length * .9:
+            Shock = False
+            Info_Rectangle_Colour = Gray
+        if Right_Eyebrow_Height <= Eye_Length * 1.1 and Left_Eyebrow_Height <= Eye_Length * 1.1:
+            Surprise = False
+            Inquisitive = False
+            Info_Rectangle_Colour = Gray
+        if Left_Mouth_Size <= Eye_Length * 1.12 and Right_Mouth_Size <= Eye_Length * 1.12 and Mouth_Nose_Distance > Eye_Length * .6:
+            Happy = False
+            Info_Rectangle_Colour = Gray
+        if Mouth_Height < Eye_Length * .9 or Glabella_Compound_Length > Eye_Length:
+            Disgusted = False
+            Info_Rectangle_Colour = Gray
+
+        # Estimate Emotions:
+        if Glabella_Compound_Length < Eye_Length:
+            Angry = True    
+            Shock = False
+            Surprise = False
+            Inquisitive = False
+            Happy = False
+            Disgusted = False
+        if Mouth_Height > Eye_Length * .9:
+            Angry = False    
+            Shock = True
+            Surprise = False
+            Inquisitive = False
+            Happy = False
+            Disgusted = False
+        if Right_Eyebrow_Height > Eye_Length * 1.1 and Left_Eyebrow_Height > Eye_Length * 1.1:
+            Angry = False    
+            Shock = False
+            Surprise = True
+            Inquisitive = False
+            Happy = False
+            Disgusted = False
+        if (Right_Eyebrow_Height > Eye_Length and Left_Eyebrow_Height < Eye_Length or
+            Left_Eyebrow_Height > Eye_Length and Right_Eyebrow_Height < Eye_Length):
+            Angry = False    
+            Shock = False
+            Surprise = False
+            Inquisitive = True
+            Happy = False
+            Disgusted = False
+        if Left_Mouth_Size > Eye_Length * 1.12 and Right_Mouth_Size > Eye_Length * 1.12 and Mouth_Nose_Distance < Eye_Length * .6:
+            Angry = False    
+            Shock = False
+            Surprise = False
+            Inquisitive = False
+            Happy = True
+            Disgusted = False
+        if Mouth_Height > Eye_Length * .9 and Glabella_Compound_Length < Eye_Length:
+            Angry = False    
+            Shock = False
+            Surprise = False
+            Inquisitive = False
+            Happy = False
+            Disgusted = True
+
+        # Display Emotion:
+        if Angry == True:
+            Info_Rectangle_Colour = Red
+            cv2.putText(RGB_Flipped_Gray_Frame, "Angry", (int(Frame_Width * .47),int(Frame_Height * .89)), 
+                        Font, Font_Size * 2, Black, Font_Thickness * 2, cv2.LINE_AA)
+        if Shock == True:
+            Info_Rectangle_Colour = Cyan
+            cv2.putText(RGB_Flipped_Gray_Frame, "Shock", (int(Frame_Width * .465),int(Frame_Height * .89)), 
+                        Font, Font_Size * 2, Black, Font_Thickness * 2, cv2.LINE_AA)
+        if Surprise == True:
+            Info_Rectangle_Colour = Yellow
+            cv2.putText(RGB_Flipped_Gray_Frame, "Surprise", (int(Frame_Width * .45),int(Frame_Height * .89)), 
+                        Font, Font_Size * 2, Black, Font_Thickness * 2, cv2.LINE_AA)
+        if Inquisitive == True:
+            Info_Rectangle_Colour = Orange
+            cv2.putText(RGB_Flipped_Gray_Frame, "Inquisitive", (int(Frame_Width * .44),int(Frame_Height * .89)), 
+                        Font, Font_Size * 2, Black, Font_Thickness * 2, cv2.LINE_AA)
+        if Happy == True:
+            Info_Rectangle_Colour = Green
+            cv2.putText(RGB_Flipped_Gray_Frame, "Happy", (int(Frame_Width * .465),int(Frame_Height * .89)), 
+                        Font, Font_Size * 2, Black, Font_Thickness * 2, cv2.LINE_AA)
+        if Disgusted == True:
+            Info_Rectangle_Colour = Blue
+            cv2.putText(RGB_Flipped_Gray_Frame, "Disgusted", (int(Frame_Width * .44),int(Frame_Height * .89)), 
+                        Font, Font_Size * 2, Black, Font_Thickness * 2, cv2.LINE_AA)
+
+    # Generate "Close" Button:
+    cv2.rectangle(RGB_Flipped_Gray_Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                 (Frame_Width, int(Frame_Height * .042)), White, Solid)
+    cv2.putText(RGB_Flipped_Gray_Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                Button_Font, Button_Font_Size * 2, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Determine Mouse Positions:
+    if Mouse_Position == 0:
+
+        # If Mouse Position Inside "Close" Button:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .042):
+            cv2.rectangle(RGB_Flipped_Gray_Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                         (Frame_Width, int(Frame_Height * .042)), Dark_Red, Solid)
+            cv2.putText(RGB_Flipped_Gray_Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                        Button_Font, Button_Font_Size * 2, White, Button_Font_Thickness, cv2.LINE_AA)
+
+            # Begin "Close" Button Interaction Timer:
+            if Run_Interaction_Timer == True:
+                Iteraction_Start_Time = time.time()
+                Run_Interaction_Timer = False
+            Iteraction_Current_Time = time.time()
+            Interaction_Time = Iteraction_Current_Time - Iteraction_Start_Time
+
+            # Determin "Close" Text Position:
+            if Got_Text_Position == False:
+                Close_X_Position = Mouse_X_Position
+                if Mouse_X_Position > 1235:
+                    Close_X_Position = 1235
+                Close_Y_Position = Mouse_Y_Position + 30
+                Got_Text_Position = True
+
+            # If Interaction Time Exceeded (Display "Close" Text):
+            if Interaction_Time >= 1.6:
+                if Display_Text == True:
+                    cv2.rectangle(RGB_Flipped_Gray_Frame, (Close_X_Position - 2, Close_Y_Position - 14), 
+                                 (Close_X_Position + 35, Close_Y_Position + 5), Cream, Solid)
+                    cv2.rectangle(RGB_Flipped_Gray_Frame, (Close_X_Position - 2, Close_Y_Position - 14), 
+                                 (Close_X_Position + 35, Close_Y_Position + 5), Black, Button_Line_Thickness)
+                    cv2.putText(RGB_Flipped_Gray_Frame, "Close", (Close_X_Position, Close_Y_Position), 
+                                Button_Font, Button_Font_Size, (0, 0, 0), Button_Font_Thickness, cv2.LINE_AA)
+
+                # If Mouse Position Interacts With "Close" Text:
+                if Mouse_X_Position > Close_X_Position - 2 and Mouse_Y_Position > Close_Y_Position - 14:
+                    Display_Text = False
+
+                # "Close" Text Display Time Exceeded:
+                if Interaction_Time >= 5:
+                    Display_Text = False
+
+        # If Mouse Position Outside "Close" Button (Reset):
+        if Mouse_X_Position < int(Frame_Width - Frame_Height * .063) or Mouse_Y_Position > int(Frame_Height * .05):
+            Run_Interaction_Timer = True
+            Iteraction_Start_Time = 0
+            Interaction_Time = 0
+            Got_Text_Position = False
+            Display_Text = True
+
+    # Check For "Close" Button Click:
+    if Mouse_Event == 1:
+        (Mouse_X, Mouse_Y) = Mouse_Position
+        if Mouse_X > int(Frame_Width - Frame_Height * .063) and Mouse_Y < int(Frame_Height * .044):
+            Pressed_Key = ord('c')
+
+    # Display Frame:
+    cv2.imshow('Emotion Estimation Window', RGB_Flipped_Gray_Frame)
+    cv2.moveWindow('Emotion Estimation Window', 0, 0)
+
+    # If Close Button Pressed:
+    if Pressed_Key == ord('c'):
+        break
+Camera.release()
