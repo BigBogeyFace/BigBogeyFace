@@ -1,0 +1,384 @@
+
+# Steamy Window By BigBogeyFace:
+
+# Import Essentails:
+import cv2
+import time
+import numpy
+import random
+
+# Setup Frame:
+Frame_Width = 1280
+Frame_Height = 720
+ 
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+ 
+# Setup Mouse Call Back:
+Mouse_Event = 0
+Mouse_Positions = 0
+Mouse_X_Position = 0
+Mouse_Y_Position = 0
+def Mouse_Click(event, Mouse_Position_X, Mouse_Position_Y, flags, perameters):
+    global Mouse_Event
+    global Mouse_Positions
+    global Mouse_X_Position
+    global Mouse_Y_Position
+    if event == cv2.EVENT_MOUSEMOVE:
+        Mouse_X_Position = (Mouse_Position_X)
+        Mouse_Y_Position = (Mouse_Position_Y)
+        Mouse_Positions = event
+    if event == cv2.EVENT_LBUTTONDOWN:
+        Mouse_Event = event
+cv2.namedWindow('Steamy Display Window')
+cv2.setMouseCallback('Steamy Display Window', Mouse_Click)
+
+# Global Variables (Make Adjustments Here):
+Distance_To_Window = .1
+Sensitivity = .5
+Confidence = .5
+Number_Of_Steam_Droplets = 500000
+
+# Generate Class:
+class mpHands:
+    import mediapipe
+    def __init__(self, Max_Hands = 2, Tolerance_1 = Sensitivity, Tolerance_2 = Confidence):
+        self.hands = self.mediapipe.solutions.hands.Hands(False, Max_Hands, Tolerance_1, Tolerance_2)
+
+    # Marks Method:
+    def Marks(self, Frame):
+        My_Hands = []
+        Frmae_RGB = cv2.cvtColor(Frame, cv2.COLOR_BGR2RGB)
+        Results = self.hands.process(Frmae_RGB)
+        if Results.multi_hand_landmarks != None:
+            for Hand_Land_Marks in Results.multi_hand_landmarks:
+                My_Hand = []
+                for Land_Mark in Hand_Land_Marks.landmark:
+                    My_Hand.append((int(Land_Mark.x * Frame_Width), int(Land_Mark.y * Frame_Height), Land_Mark.z))
+                My_Hands.append(My_Hand)
+        return My_Hands
+
+# Generate Object:
+Find_Hands = mpHands(1)
+
+# Colours:
+Dark_Red = (30, 30, 200)
+Red = (0, 0, 255)
+White = (255, 255, 255)
+Blue = (255, 0, 0)
+Cyan = (255, 255, 0)
+Green = (0, 255, 0)
+Gray = (127, 127, 127)
+Black = (0, 0, 0)
+Cream = (236, 255, 255)
+
+# Circle On Finger Tip (For Development Purposes):
+Radius = 20
+Solid = - 1
+
+# Button Text:
+Button_Font = cv2.FONT_HERSHEY_SIMPLEX
+Button_Font_Size = .4
+Button_Font_Thickness = 1
+Button_Line_Thickness = 1
+Solid = - 1
+
+# Setup Close Button Functionality:
+Run_Close_Interaction_Timer = True
+Got_Close_Text_Position = False
+Display_Close_Text = True
+
+# Setup Pause Button Functionality:
+Run_Pause_Interaction_Timer = True
+Got_Pause_Text_Position = False
+Display_Pause_Text = True
+Paused = False
+Old_Pause_State = False
+New_Pause_State = False
+
+# Setup Steam Button State:
+Steamed_Up = False
+
+# Begin Program Loop:
+while True:
+
+    # Initialise waitKey:
+    Pressed_Key = cv2.waitKey(1) & 0xFF
+
+    # Generate Steam:
+    if Steamed_Up == False:
+                
+        # Generate Steamy Window:
+        Steamy_Window = numpy.zeros([Frame_Height, Frame_Width, 3], dtype = numpy.uint8)
+
+        # Generate Steam Droplets:
+        for i in range(0, Number_Of_Steam_Droplets, 1):
+
+            # Get Steam Droplet Position:
+            Across = random.randint(0, Frame_Width)
+            Down = random.randint(0, Frame_Height)
+
+            # Define Border Area:
+            Border_Constraint = 150
+
+            # Calculate Across Brightness:
+            if Across <= Border_Constraint:
+                Across_Brightness = Across
+            if Across > Border_Constraint and Across < Frame_Width - Border_Constraint:
+                Across_Brightness = Border_Constraint
+            if Across >= Frame_Width - Border_Constraint:
+                Across_Brightness = Frame_Width - Across
+
+            # Calculate Down Brightness:
+            if Down <= Border_Constraint:
+                Down_Brightness = Down
+            if Down > Border_Constraint and Down < Frame_Height - Border_Constraint:
+                Down_Brightness  = Border_Constraint
+            if Down >= Frame_Height - Border_Constraint:
+                Down_Brightness = Frame_Height - Down
+
+            # Subdue Brightness:
+            Across_Brightness = Across_Brightness - 50
+            Down_Brightness = Down_Brightness - 50
+
+            # Calculate Compound Brightness:
+            Compound_Brightness = Across_Brightness + Down_Brightness
+
+            # Constrain Brightness:
+            if Compound_Brightness < 0:
+                Compound_Brightness = 0    
+            if Compound_Brightness > 250:
+                Compound_Brightness = 250
+
+            # Steam Up Window:
+            Steamy_Window[Down : Down + 2, Across : Across + 1] = (Compound_Brightness, Compound_Brightness, Compound_Brightness)
+
+        # Reset Steam Up Variable:
+        Steamed_Up = True
+
+    # Frame Management:
+    Ignore, Frame = Camera.read()
+    Flipped_Frame = cv2.flip(Frame, 1)
+            
+    # Generate Final Display:
+    Final_Display = cv2.addWeighted(Flipped_Frame, .5, Steamy_Window, .5, 0)
+
+    # Capture Paused Frame:
+    if Paused == True:
+        Final_Display = Paused_Frame
+
+    # Collect Hand Data:
+    Hand_Data = Find_Hands.Marks(Flipped_Frame)
+
+    # Iterate Through Hand Data:
+    for Hand in Hand_Data:
+        for Find in [8]:
+            Finger_Tip = Hand[8]
+
+            # Circle On Finger Tip (For Development Purposes):
+            # cv2.circle(Final_Display, (Finger_Tip[0],Finger_Tip[1]), Radius, Red, Solid)
+
+            # Circle On Finger Tip:
+            if Finger_Tip[2] < - Distance_To_Window:
+                cv2.circle(Steamy_Window, (Finger_Tip[0],Finger_Tip[1]), Radius, Black, Solid)
+
+                # Circle On Finger + Z Distance Data (For Development Purposes):
+                # cv2.circle(Final_Display, (Finger_Tip[0],Finger_Tip[1]), Radius, Green, Solid)
+                # cv2.putText(Final_Display, (str(Finger_Tip[2])), (int(Frame_Width * .5), int(Frame_Height * .5)), 
+                            # Button_Font, Button_Font_Size * 2, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Generate Steam Button:
+    cv2.rectangle(Final_Display, (int(Frame_Width - Frame_Height * .252), 0), 
+                 (int(Frame_Width - Frame_Height * .126), int(Frame_Height * .042)), White, Solid)
+    cv2.putText(Final_Display, "Steam Up", (int(Frame_Width - Frame_Height * .245), int(Frame_Height * .0265)), 
+                Button_Font, Button_Font_Size * 1.3, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Generate Pause Button:
+    cv2.rectangle(Final_Display, (int(Frame_Width - Frame_Height * .126), 0), 
+                 (int(Frame_Width - Frame_Height * .063), int(Frame_Height * .042)), White, Solid)
+    cv2.putText(Final_Display, "| |", (int(Frame_Width - Frame_Height * .105), int(Frame_Height * .0265)), 
+                Button_Font, Button_Font_Size, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Generate Close Button:
+    cv2.rectangle(Final_Display, (int(Frame_Width - Frame_Height * .063), 0), 
+                 (Frame_Width, int(Frame_Height * .042)), White, Solid)
+    cv2.putText(Final_Display, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                Button_Font, Button_Font_Size * 2, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Determin Cursor Positions:
+    if Mouse_Positions == 0:
+
+        # If Cursor Position Inside Steam Button:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .252) and Mouse_X_Position < int(Frame_Width - Frame_Height * .126) 
+            and Mouse_Y_Position < int(Frame_Height * .042)):
+            cv2.rectangle(Final_Display, (int(Frame_Width - Frame_Height * .252), 0), 
+                        (int(Frame_Width - Frame_Height * .126), int(Frame_Height * .042)), Green, Solid)
+            cv2.putText(Final_Display, "Steam Up", (int(Frame_Width - Frame_Height * .245), int(Frame_Height * .0265)), 
+                        Button_Font, Button_Font_Size * 1.3, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Check For Steam Button Click:
+    if Mouse_Event == 1:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .252) and Mouse_X_Position < int(Frame_Width - Frame_Height * .126) 
+            and Mouse_Y_Position < int(Frame_Height * .042)):
+            Steamed_Up = False
+            Mouse_Event = 0
+
+    # Determin Cursor Positions:
+    if Mouse_Positions == 0:
+
+        # If Cursor Position Inside Pause Button:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .126) and Mouse_X_Position < int(Frame_Width - Frame_Height * .063) 
+        and Mouse_Y_Position < int(Frame_Height * .042) or Paused == True):
+            cv2.rectangle(Final_Display, (int(Frame_Width - Frame_Height * .126), 0), 
+                        (int(Frame_Width - Frame_Height * .063), int(Frame_Height * .042)), Cyan, Solid)
+            cv2.putText(Final_Display, "| |", (int(Frame_Width - Frame_Height * .105), int(Frame_Height * .0265)), 
+                        Button_Font, Button_Font_Size, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+            # Begin Pause Button Interaction Timer:
+            if Run_Pause_Interaction_Timer == True:
+                Pause_Iteraction_Start_Time = time.time()
+                Run_Pause_Interaction_Timer = False
+            Pause_Iteraction_Current_Time = time.time()
+            Pause_Interaction_Time = Pause_Iteraction_Current_Time - Pause_Iteraction_Start_Time
+
+            # Determin Pause Text Position:
+            if Got_Pause_Text_Position == False:
+                Pause_X_Position = Mouse_X_Position
+                Pause_Y_Position = Mouse_Y_Position + 30
+                Got_Pause_Text_Position = True
+
+            # If Pause Interaction Time Exceeded (Display Pause Text):
+            if Pause_Interaction_Time >= 1.6:
+                Display_Pause_Text = True
+
+            # Pause Text Display Time Exceeded:
+            if Pause_Interaction_Time >= 5.4:
+                Display_Pause_Text = False
+
+            # Display Pause Text:
+            if Display_Pause_Text == True and Paused == False:
+                cv2.rectangle(Final_Display, (Pause_X_Position - 2, Pause_Y_Position - 14), 
+                             (Pause_X_Position + 40, Pause_Y_Position + 5), Cream, Solid)
+                cv2.rectangle(Final_Display, (Pause_X_Position - 2, Pause_Y_Position - 14), 
+                             (Pause_X_Position + 40, Pause_Y_Position + 5), Black, Button_Line_Thickness)
+                cv2.putText(Final_Display, "Pause", (Pause_X_Position, Pause_Y_Position), 
+                            Button_Font, Button_Font_Size, (0, 0, 0), Button_Font_Thickness, cv2.LINE_AA)
+
+            # If Cursor Position Interacts With Pause Text:
+            if Mouse_X_Position > Pause_X_Position - 2 and Mouse_Y_Position > Pause_Y_Position - 14:
+                Display_Pause_Text = False
+
+        # If Cursor Position Outside Pause Button (Reset Pause Button):
+        if (Mouse_X_Position < int(Frame_Width - Frame_Height * .126) or Mouse_X_Position > int(Frame_Width - Frame_Height * .063) 
+            or Mouse_Y_Position > int(Frame_Height * .042) and Paused == False):  
+            Run_Pause_Interaction_Timer = True
+            Pause_Iteraction_Start_Time = 0
+            Pause_Interaction_Time = 0
+            Got_Pause_Text_Position = False
+            Display_Pause_Text = False
+
+    # Check For Pause Button Click:
+    Pause_Button_State = False
+    if Mouse_Event == 1:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .126) and Mouse_X_Position < int(Frame_Width - Frame_Height * .063) 
+            and Mouse_Y_Position < int(Frame_Height * .044)):
+            Button_State = True
+            if Button_State == True and Old_Pause_Button_State == False:
+                if Paused == True:
+                    Paused = False
+                else:
+                    Paused = True 
+                    Paused_Frame = Final_Display
+                Mouse_Event = 0
+    Old_Pause_Button_State = Pause_Button_State
+
+    # Determin Cursor Positions:
+    if Mouse_Positions == 0:
+
+        # If Cursor Position Inside Close Button:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .042):
+            cv2.rectangle(Final_Display, (int(Frame_Width - Frame_Height * .063), 0), 
+                         (Frame_Width, int(Frame_Height * .042)), Dark_Red, Solid)
+            cv2.putText(Final_Display, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                        Button_Font, Button_Font_Size * 2, White, Button_Font_Thickness, cv2.LINE_AA)
+
+            # Begin Close Button Interaction Timer:
+            if Run_Close_Interaction_Timer == True:
+                Close_Iteraction_Start_Time = time.time()
+                Run_Close_Interaction_Timer = False
+            Close_Iteraction_Current_Time = time.time()
+            Close_Interaction_Time = Close_Iteraction_Current_Time - Close_Iteraction_Start_Time
+
+            # Determin Close Text Position:
+            if Got_Close_Text_Position == False:
+                Close_X_Position = Mouse_X_Position
+                if Mouse_X_Position > 1235:
+                    Close_X_Position = 1235
+                Close_Y_Position = Mouse_Y_Position + 30
+                Got_Close_Text_Position = True
+
+            # If Close Interaction Time Exceeded (Display Close Text):
+            if Close_Interaction_Time >= 1.6:
+                Display_Close_Text = True
+
+            # Close Text Display Time Exceeded:
+            if Close_Interaction_Time >= 5.4:
+                Display_Close_Text = False
+
+            # Display Close Text:
+            if Display_Close_Text == True and Paused == False:
+                cv2.rectangle(Final_Display, (Close_X_Position - 2, Close_Y_Position - 14), 
+                             (Close_X_Position + 35, Close_Y_Position + 5), Cream, Solid)
+                cv2.rectangle(Final_Display, (Close_X_Position - 2, Close_Y_Position - 14), 
+                             (Close_X_Position + 35, Close_Y_Position + 5), Black, Button_Line_Thickness)
+                cv2.putText(Final_Display, "Close", (Close_X_Position, Close_Y_Position), 
+                            Button_Font, Button_Font_Size, (0, 0, 0), Button_Font_Thickness, cv2.LINE_AA)
+
+            # If Cursor Position Interacts With Close Text:
+            if Mouse_X_Position > Close_X_Position - 2 and Mouse_Y_Position > Close_Y_Position - 14:
+                Display_Close_Text = False
+
+        # If Cursor Position Outside Close Button (Reset Close Button):
+        if Mouse_X_Position < int(Frame_Width - Frame_Height * .063) or Mouse_Y_Position > int(Frame_Height * .05):
+            Run_Close_Interaction_Timer = True
+            Close_Iteraction_Start_Time = 0
+            Close_Interaction_Time = 0
+            Got_Close_Text_Position = False
+            Display_Close_Text = False
+
+    # Check For Close Button Click:
+    if Mouse_Event == 1:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .044):
+            Pressed_Key = ord('*')
+ 
+    # Title Bar:
+    cv2.rectangle(Final_Display, (int(Frame_Width * .44) , 0), (int(Frame_Width * .56), 40), White, Solid) 
+    cv2.putText(Final_Display, "Steamy Window", (int(Frame_Width * .45), 24), 
+                Button_Font, Button_Font_Size * 1.3, Black, Button_Font_Thickness, cv2.LINE_AA) 
+                 
+    # Display Frame:
+    cv2.imshow('Steamy Display Window', Final_Display)
+    cv2.moveWindow('Steamy Display Window', 0, 0)
+
+    # If Close Button Pressed:
+    if Pressed_Key == ord('*'):
+        break
+Camera.release()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Many Thanks To Mr Paul McWhorter
