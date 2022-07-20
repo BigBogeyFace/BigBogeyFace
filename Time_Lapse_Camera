@@ -1,0 +1,399 @@
+
+# Time Lapse Camera By BigBogeyFace:
+
+# Import Essentails:
+import cv2
+import time
+
+# Setup Frame:
+Frame_Width = 1280
+Frame_Height = 720
+ 
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+ 
+# Setup Mouse Call Back:
+Mouse_Event = 0
+Mouse_Positions = 0
+Mouse_X_Position = 0
+Mouse_Y_Position = 0
+def Mouse_Click(event, Mouse_Position_X, Mouse_Position_Y, flags, perameters):
+    global Mouse_Event
+    global Mouse_Positions
+    global Mouse_X_Position
+    global Mouse_Y_Position
+    if event == cv2.EVENT_MOUSEMOVE:
+        Mouse_X_Position = (Mouse_Position_X)
+        Mouse_Y_Position = (Mouse_Position_Y)
+        Mouse_Positions = event
+    if event == cv2.EVENT_LBUTTONDOWN:
+        Mouse_Event = event
+cv2.namedWindow('Close & Pause Button Window')
+cv2.setMouseCallback('Close & Pause Button Window', Mouse_Click)
+
+# Colours:
+Red = (0, 0, 255)
+Dark_Red = (30, 30, 200)
+Green = (0, 255, 0)
+White = (255, 255, 255)
+Cyan = (255, 255, 0)
+Yellow = (0, 255, 255)
+Light_Gray = (175, 175, 175)
+Gray = (127, 127, 127)
+Black = (0, 0, 0)
+
+# Button Text Variables:
+Font = cv2.FONT_HERSHEY_SIMPLEX
+Font_Scale = .4
+Button_Font_Thickness = 1
+Solid = - 1
+
+# Setup Pause Button Functionality:
+Paused = False
+Old_Pause_State = False
+New_Pause_State = False
+Set = False
+Old_Set_State = False
+New_Set_State = False
+
+# Setup Record Button Functionality:
+Record = False
+Old_Record_Button_State = False
+New_Record_State = False
+
+# Setup Play Button Functionality:
+Play = False
+Old_Play_State = False
+New_Play_State = False
+Play_Frame_Number = 0
+Playing_Frame = 0
+
+# Global Initialisers:
+File_Number = 0
+Frame_Lapse = 0
+Lapse_Time = 10
+
+# Initialise Okay Display:
+Display_Okay = False
+Okay_Display_Timer = False
+Start_Okay_Display_Time = False
+
+# Initialise Frame Step Answer:
+Frame_Step_Answer = " "
+Frame_Step_Display_Answer = " "
+
+# Begin Program Loop:
+while True:
+
+    # Initialise waitKey:
+    Pressed_Key = cv2.waitKey(1) & 0xFF
+
+    # Capture Frame:
+    Ignore, Frame = Camera.read()
+
+    # Generate Set Button:
+    cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .315), 0), 
+                 (int(Frame_Width - Frame_Height * .231), int(Frame_Height * .042)), White, Solid)
+    cv2.putText(Frame, "Set", (int(Frame_Width - Frame_Height * .3), int(Frame_Height * .0265)), 
+                Font, Font_Scale, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Generate Record Button:
+    cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .252), 0), 
+                 (int(Frame_Width - Frame_Height * .189), int(Frame_Height * .042)), White, Solid)
+    cv2.putText(Frame, "Rec", (int(Frame_Width - Frame_Height * .236), int(Frame_Height * .0265)), 
+                Font, Font_Scale, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Generate Play Button:
+    cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .189), 0), 
+                 (int(Frame_Width - Frame_Height * .126), int(Frame_Height * .042)), White, Solid)
+    cv2.putText(Frame, "Play", (int(Frame_Width - Frame_Height * .176), int(Frame_Height * .0265)), 
+                Font, Font_Scale, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Generate Pause Button:
+    cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .126), 0), 
+                 (int(Frame_Width - Frame_Height * .063), int(Frame_Height * .042)), White, Solid)
+    cv2.putText(Frame, "| |", (int(Frame_Width - Frame_Height * .105), int(Frame_Height * .0265)), 
+                Font, Font_Scale, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Generate Close Button:
+    cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                 (Frame_Width, int(Frame_Height * .042)), White, Solid)
+    cv2.putText(Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                Font, Font_Scale * 2, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Out Of Bounds Click:
+    if Mouse_Event == 1:
+        if (Mouse_X_Position < int(Frame_Width - Frame_Height * .315) or Mouse_Y_Position > int(Frame_Height * .042)):
+            print("Mouse Click Out Of Bounds")
+            Mouse_Event = 0
+
+    # Set Button Interaction:
+    if Mouse_Positions == 0:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .315) and Mouse_X_Position < int(Frame_Width - Frame_Height * .252) and
+            Mouse_Y_Position < int(Frame_Height * .042)):
+
+            # Change Colour Upon Interaction:
+            cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .315), 0), 
+                        (int(Frame_Width - Frame_Height * .252), int(Frame_Height * .042)), Yellow, Solid)
+            cv2.putText(Frame, "Set", (int(Frame_Width - Frame_Height * .3), int(Frame_Height * .0265)), 
+                        Font, Font_Scale, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Reset Button States:
+    Set_Button_State = False
+
+    # Pause Button Pressed:
+    if Mouse_Event == 1:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .315) and Mouse_X_Position < int(Frame_Width - Frame_Height * .252) and
+            Mouse_Y_Position < int(Frame_Height * .042)):
+            print("Setting Button Pressed")
+
+            # Pause Button Toggle Switch:
+            Set_Button_State = True
+            if Set_Button_State == True and Old_Set_Button_State == False:
+                if Set == True:
+                    print("Set")
+                    Set = False
+                else:
+                    print("Setting")
+                    Set = True 
+                    Lapse_Time = 0
+
+                # Reset Event:
+                Mouse_Event = 0
+
+    # Prompt User:
+    Old_Set_Button_State = Set_Button_State
+    if Set == True:
+        cv2.rectangle(Frame, (int(Frame_Width * .40), int(Frame_Height * .30)), 
+                     (int(Frame_Width * .60), int(Frame_Height * .56)), Light_Gray, Solid)
+        cv2.putText(Frame, "Please Set The Number Of", (int(Frame_Width * .414), int(Frame_Height * .34)), 
+                    Font, Font_Scale * 1.3, Black, Button_Font_Thickness, cv2.LINE_AA)          
+        cv2.putText(Frame, "Time Lapse Frame Steps:", (int(Frame_Width * .418), int(Frame_Height * .38)), 
+                    Font, Font_Scale * 1.3, Black, Button_Font_Thickness, cv2.LINE_AA)  
+        cv2.rectangle(Frame, (int(Frame_Width * .44), int(Frame_Height * .40)), 
+                     (int(Frame_Width * .56), int(Frame_Height * .45)), White, Solid) 
+        cv2.putText(Frame, " Note: The Camera Speed ", (int(Frame_Width * .414), int(Frame_Height * .49)), 
+                    Font, Font_Scale * 1.3, Black, Button_Font_Thickness, cv2.LINE_AA) 
+        cv2.putText(Frame, "  Is Approximately 10fps ", (int(Frame_Width * .414), int(Frame_Height * .53)),                       
+                    Font, Font_Scale * 1.3, Black, Button_Font_Thickness, cv2.LINE_AA) 
+
+        # Display Frame Steps:   
+        cv2.putText(Frame, str(Frame_Step_Display_Answer), (int(Frame_Width * .49), int(Frame_Height * .434)), 
+                    Font, Font_Scale * 1.3, Black, Button_Font_Thickness, cv2.LINE_AA)  
+
+        # Collect Key Presses:
+        if Pressed_Key >= 48 and Pressed_Key <= 57:
+            Frame_Step_Answer = Frame_Step_Answer + chr(Pressed_Key)
+            Frame_Step_Display_Answer = Frame_Step_Answer
+
+        # Return Key, Pressed:
+        if  Pressed_Key == (13):
+            Frame_Step_Answer = Frame_Step_Answer.lower()
+            Frame_Steps = int (Frame_Step_Answer)
+
+            # Constrain Frame Steps:
+            if Frame_Steps < 1:
+                Frame_Steps = 1
+
+            # Continue With User Data:
+            Lapse_Time = int (Frame_Step_Answer)
+            print("Lapse Time = ", Lapse_Time)
+            Frame_Step_Answer = " "
+            Frame_Step_Display_Answer = " "
+            Display_Okay = True
+            Okay_Display_Timer = True
+            Set = False
+
+    # Okay Response:
+    if Display_Okay == True:
+
+            # Begin Okay Response Timer:
+            if Okay_Display_Timer == True:
+                Start_Okay_Display_Time = time.time()
+                Okay_Display_Timer = False
+            Okay_Display_Current_Time = time.time()
+            Okay_Display_Displayed_Time = Okay_Display_Current_Time - Start_Okay_Display_Time
+
+            # Display Okay Response:
+            if Okay_Display_Displayed_Time < 2:
+                cv2.rectangle(Frame, (int(Frame_Width * .46), int(Frame_Height * .37)), 
+                             (int(Frame_Width * .54), int(Frame_Height * .43)), Light_Gray, Solid)
+                cv2.rectangle(Frame, (int(Frame_Width * .46), int(Frame_Height * .37)), 
+                             (int(Frame_Width * .54), int(Frame_Height * .43)), Gray, 2)  
+                cv2.putText(Frame, "Okay", (int(Frame_Width * .484), int(Frame_Height * .41)), 
+                            Font, Font_Scale * 1.5, Black, Button_Font_Thickness, cv2.LINE_AA) 
+
+            # Clear Okay Response:
+            if Okay_Display_Displayed_Time >= 2:
+                Display_Okay = False
+
+    # Record Button Interaction:
+    if Mouse_Positions == 0:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .252) and Mouse_X_Position < int(Frame_Width - Frame_Height * .189) and
+            Mouse_Y_Position < int(Frame_Height * .042)):
+
+            # Change Colour Upon Interaction:
+            cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .252), 0), 
+                        (int(Frame_Width - Frame_Height * .189), int(Frame_Height * .042)), Red, Solid)
+            cv2.putText(Frame, "Rec", (int(Frame_Width - Frame_Height * .236), int(Frame_Height * .0265)), 
+                        Font, Font_Scale, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Reset Button States:
+    Play_Button_State = False
+    Pause_Button_State = False
+    Record_Button_State = False
+    Set_Button_State = False
+
+    # Record Button Pressed:
+    if Mouse_Event == 1:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .252) and Mouse_X_Position < int(Frame_Width - Frame_Height * .189) and
+            Mouse_Y_Position < int(Frame_Height * .042)):
+            print("Record Button Pressed")
+
+            # Record Button Toggle Switch:
+            Record_State = True
+            if Record_State == True and Old_Record_Button_State == False:
+                if Record == True:
+                    print("Stop Recording")
+                    Frame_Lapse = 0
+                    Record = False
+                else:
+                    print("Recording")
+                    Record = True 
+                    File_Number = 0
+
+            # Reset Event:
+            Mouse_Event = 0
+
+    # Record Function:
+    Old_Record_Button_State = Record_Button_State
+    if Record == True:
+        if Frame_Lapse == Lapse_Time:
+            cv2.imwrite('Time_Lapse_Animation/Frame_Number_' + str(File_Number) + '.png', Frame) 
+            File_Number = File_Number + 1
+            Play_Frame_Number = File_Number
+            Playing_Frame = 0
+            Frame_Lapse = 0
+        Frame_Lapse = Frame_Lapse + 1
+
+    # Play Button Interaction:
+    if Mouse_Positions == 0:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .189) and Mouse_X_Position < int(Frame_Width - Frame_Height * .126) and
+            Mouse_Y_Position < int(Frame_Height * .042)):
+
+            # Change Colour Upon Interaction:
+            cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .189), 0), 
+                        (int(Frame_Width - Frame_Height * .126), int(Frame_Height * .042)), Green, Solid)
+            cv2.putText(Frame, "Play", (int(Frame_Width - Frame_Height * .176), int(Frame_Height * .0265)), 
+                        Font, Font_Scale, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Reset Button States:
+    Record_Button_State = False
+
+    # Play Button Pressed:
+    if Mouse_Event == 1:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .189) and Mouse_X_Position < int(Frame_Width - Frame_Height * .126) and
+            Mouse_Y_Position < int(Frame_Height * .042)):
+            print("Play Button Pressed")
+            Play = False
+
+            # Play Button Toggle:
+            Play_State = True
+            if Play_State == True and Old_Play_Button_State == False:
+                if Play == True:
+                    print("Stop Playing")
+                    Play = False
+                else:
+                    print("Playing")
+                    Play = True 
+
+            # Reset Event:
+            Mouse_Event = 0
+
+    # Play Function:
+    Old_Play_Button_State = Play_Button_State
+    if Play == True:
+        Record = False
+        Frame = cv2.imread('Time_Lapse_Animation/Frame_Number_' + str(Playing_Frame) + '.png', 1) 
+        Playing_Frame = Playing_Frame + 1
+        time.sleep(.1)
+        if Playing_Frame == Play_Frame_Number:
+            Play = False
+
+    # Reset Player When Finished:
+    if Play == False:
+        Playing_Frame = 0
+
+    # Pause Button Interaction:
+    if Mouse_Positions == 0:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .126) and Mouse_X_Position < int(Frame_Width - Frame_Height * .063) 
+        and Mouse_Y_Position < int(Frame_Height * .042) or Paused == True):
+
+            # Change Colour Upon Interaction:
+            cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .126), 0), 
+                        (int(Frame_Width - Frame_Height * .063), int(Frame_Height * .042)), Cyan, Solid)
+            cv2.putText(Frame, "| |", (int(Frame_Width - Frame_Height * .105), int(Frame_Height * .0265)), 
+                        Font, Font_Scale, Black, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Reset Button States:
+    Play_Button_State = False
+    Record_Button_State = False       
+    Pause_Button_State = False
+
+    # Pause Button Pressed:
+    if Mouse_Event == 1:
+        if (Mouse_X_Position > int(Frame_Width - Frame_Height * .126) and Mouse_X_Position < int(Frame_Width - Frame_Height * .063) 
+            and Mouse_Y_Position < int(Frame_Height * .044)):
+            print("Pause Button Pressed")
+
+            # Pause Button Toggle:
+            Button_State = True
+            if Button_State == True and Old_Pause_Button_State == False:
+                if Paused == True:
+                    print("Un-Paused")
+                    Paused = False
+                else:
+                    print("Paused")
+                    Paused = True 
+                    Paused_Frame = Frame
+
+                # Reset Event:
+                Mouse_Event = 0
+
+    # Pause Function:
+    Old_Pause_Button_State = Pause_Button_State
+    if Paused == True:
+        Frame = Paused_Frame
+
+    # Close Button
+    if Mouse_Positions == 0:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .042):
+
+            # Change Colour Upon Interaction:
+            cv2.rectangle(Frame, (int(Frame_Width - Frame_Height * .063), 0), 
+                         (Frame_Width, int(Frame_Height * .042)), Dark_Red, Solid)
+            cv2.putText(Frame, "x", (int(Frame_Width - Frame_Height * .043), int(Frame_Height * .030)), 
+                        Font, Font_Scale * 2, White, Button_Font_Thickness, cv2.LINE_AA)
+
+    # Closed Button Pressed:
+    if Mouse_Event == 1:
+        if Mouse_X_Position > int(Frame_Width - Frame_Height * .063) and Mouse_Y_Position < int(Frame_Height * .044):
+            print("Close Button Pressed")
+            Pressed_Key = ord('*')
+
+    # Title Bar:
+    cv2.rectangle(Frame, (int(Frame_Width * .43) , 0), (int(Frame_Width * .57), 40), White, Solid) 
+    cv2.putText(Frame, "Time Lapse Camera", (int(Frame_Width * .445), 24), 
+                Font, Font_Scale * 1.1, Black, Button_Font_Thickness) 
+                       
+    # Display
+    cv2.imshow('Close & Pause Button Window', Frame)
+    cv2.moveWindow('Close & Pause Button Window', 0, 0)
+
+    # Close:
+    if Pressed_Key == ord('*'):
+        break
+Camera.release()
