@@ -1,0 +1,147 @@
+
+# Shop Activity Footage Analyser Simple By BigBogeyFace
+
+# Click: Terminal
+# Type: pip freeze
+# Press: Enter
+# You should have the following modules:
+# python 3.6.6
+# opencv-contrib-python==4.6.0.66
+# mediapipe==0.8.3
+
+# Import Modules:
+import cv2
+import time
+
+# Frame Setup:
+Frame_Width = 1280
+Frame_Height = 720
+
+# Mouse Initialisers:
+evt = 0
+pntX1 = 0
+pntY1 = 0
+pntX2 = 0
+pntY2 = 0
+
+# Mouse Functions:
+def MouseClick(event, xPos, yPos, flags, perameters):
+    global evt
+    global pntX1
+    global pntY1    
+    global pntX2
+    global pntY2
+
+    # Left Button Down:
+    if event == cv2.EVENT_LBUTTONDOWN: # 1
+        pntX1 = (xPos)
+        pntY1 = (yPos)
+        evt = event
+
+    # Left Button Up:
+    if event == cv2.EVENT_LBUTTONUP: # 4
+        pntX2 = (xPos)
+        pntY2 = (yPos)
+        evt = event
+
+# Initialise Mouse Call:
+cv2.namedWindow('Shop_Activity_Analyser')
+cv2.setMouseCallback('Shop_Activity_Analyser', MouseClick)
+
+# Class:
+class MediaPipe_Bodies:
+    import mediapipe
+    def __init__(self):
+        self.pose = self.mediapipe.solutions.pose.Pose(False, False, True, .5, .5)
+
+    # Method:
+    def Marks(self, Frame):
+        LandMarks = []
+        FrameRGB = cv2.cvtColor(Frame, cv2.COLOR_BGR2RGB)
+        Results = self.pose.process(FrameRGB)
+        if Results.pose_landmarks != None:
+            for lm in Results.pose_landmarks.landmark:
+                LandMarks.append((int(lm.x * Frame_Width),int(lm.y * Frame_Height)))
+            return LandMarks
+
+# Find Bodies Object:
+Find_Bodies = MediaPipe_Bodies()
+
+# Globals & Initialisers:
+Red = (0, 0, 255)
+Green = (0, 255, 0)
+LineThickness = 3
+Start = True
+Roi_Created = False
+Empty = True
+People_Counter = 0
+
+# Collect Video File:
+File_Object = cv2.VideoCapture('Shopping Center - 12876.mp4')
+
+# Begin Program Loop:
+print("The Program Began")
+while True:
+    
+    # Collect Frame From File:
+    Read_Counter , Frame = File_Object.read()
+    Gray_Frame = cv2.cvtColor(Frame, cv2.COLOR_BGR2GRAY)
+    Was_Gray_Frame = cv2.cvtColor(Gray_Frame, cv2.COLOR_GRAY2BGR)
+
+    # Check For Left Button Down:
+    if  evt == 1: 
+        Start = False
+        Roi_Created = False
+
+    # Check For Left Button Up:
+    if  evt == 4:
+        Roi_Created = True
+        Start = True
+        if Roi_Created == False:
+            People_Counter = 0
+            print("ROI Was Created")
+            print("People Counter Was Reset")
+
+        # Create ROI:
+        Roi = Frame[pntY1 : pntY2, pntX1 : pntX2]
+        Was_Gray_Frame [pntY1 : pntY2, pntX1 : pntX2] = Roi
+        cv2.rectangle(Was_Gray_Frame, (pntX1, pntY1), (pntX2, pntY2), Green, LineThickness)
+
+    # If Start Is True And ROI Is Got:
+    if Start == True and Roi_Created == True:
+
+        # Check For Bodies In ROI:
+        Bodies_Data = Find_Bodies.Marks(Roi)
+
+        # If Bodies Detected In ROI:
+        if  Bodies_Data != None:
+
+            # Rectangle Is Green:
+            cv2.rectangle(Was_Gray_Frame, (pntX1, pntY1), (pntX2, pntY2), Red, LineThickness)
+            if Empty == True:
+                People_Counter = People_Counter + 1
+                print("I Saw", str(People_Counter), "People In The ROI")
+                Empty = False
+
+        # If No Bodies Detected In ROI:
+        else:
+
+            # Rectangle Is Red:
+            cv2.rectangle(Was_Gray_Frame, (pntX1, pntY1), (pntX2, pntY2), Green, LineThickness)
+            if Empty == False:
+                print("The Person Left The ROI")
+                Empty = True
+
+    # Display Frame:
+    cv2.imshow('Shop_Activity_Analyser', Was_Gray_Frame)
+    cv2.moveWindow('Shop_Activity_Analyser', 0, 0)
+
+    # Set Playback Speed:
+    time.sleep(.02)
+
+    # Check For "q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        print("Q Was Pressed")
+        break
+File_Object.release()
+ 
