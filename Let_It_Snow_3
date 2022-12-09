@@ -1,0 +1,253 @@
+
+# Let It Snow 3 By Big Bogey Face:
+ 
+# Import Essentials:
+import cv2
+import numpy
+import random
+
+# Frame Resolution(720p):
+Frame_Width = 1280
+Frame_Height = 720
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Global Variables:
+Mouse_Click_Event = 0
+Mouse_Position = (0, 0)
+White = (255, 255, 255)
+Black = (0, 0, 0)
+Cyan = (255, 255, 0)
+Dark_Cyan = (155, 155, 0)
+Font = cv2.FONT_HERSHEY_TRIPLEX
+Text_Thickness = 1
+Text_Colour = Black
+Font_Scale = .6
+Snow_Flake = "*"
+Number_Of_Flakes = 10
+Start_Flake_Y_Position = 90
+Snow_Flake_Colour = White
+Snow_Flake_Thickness = 1
+Snow_Fall_Step_Size = 8
+Snow_Opacity = 1
+Small_Snow_Flake = .5
+Large_Snow_Flake = 1
+Snow_Frame_Scalar = .9
+Frame_Mix = .5
+Darkness_Threshold = 50
+Blizzard_Flake_Quantity_Multiplier = 2
+Rectangle_Colour = Cyan
+Rectangle_Thickness = -1
+Rectangle_Outline_Colour = Dark_Cyan
+Rectangle_Outline_Thickness = 5
+Horizontal_Step_Size = 0
+
+# Mouse Click Function:
+def Mouse_Click_Function(Event, Mouse_X_Position, Mouse_Y_Position, flags, perameters):
+    global Mouse_Click_Event
+    global Mouse_Position
+    if Event == cv2.EVENT_LBUTTONDOWN: # 1
+        Mouse_Position = (Mouse_X_Position, Mouse_Y_Position)
+        Mouse_Click_Event = Event
+cv2.namedWindow('Snow Window 3')
+cv2.setMouseCallback('Snow Window 3', Mouse_Click_Function)
+
+# Initialise Flakes:
+Flake_X_Position = []
+for i in range(0, Number_Of_Flakes, 1):
+    Flake_X_Position.append(random.randint(0, Frame_Width))
+Flake_Y_Position = []
+for i in range(0, Number_Of_Flakes, 1):
+    Flake_Y_Position.append(random.randint(Start_Flake_Y_Position, Frame_Height))
+Flake_Direction = []
+for i in range(0, Number_Of_Flakes, 1):
+    Flake_Direction.append(random.randint(0, 2))
+
+# Collect Clouds:
+Clouds = cv2.imread("Clouds.png")
+
+# Program Loop:
+while True:
+
+    # Mouse Click:
+    if Mouse_Click_Event == 1:
+
+        # Unpack Mouse Click:
+        (Horizontal_Step_Size, Number_Of_Flakes) = Mouse_Position
+
+        # Horizontal Step Size:
+        Horizontal_Step_Size = int(Horizontal_Step_Size / 100) 
+        if Horizontal_Step_Size % 2 == 1:
+            Horizontal_Step_Size = Horizontal_Step_Size + 1
+
+        # Number Of Flakes:
+        Number_Of_Flakes = Number_Of_Flakes * Blizzard_Flake_Quantity_Multiplier
+
+        # Initialise Flakes:
+        Flake_X_Position = []
+        for i in range(0, Number_Of_Flakes, 1):
+            Flake_X_Position.append(random.randint(0, Frame_Width))
+        Flake_Y_Position = []
+        for i in range(0, Number_Of_Flakes, 1):
+            Flake_Y_Position.append(random.randint(Start_Flake_Y_Position, Frame_Height))
+        Flake_Direction = []
+        for i in range(0, Number_Of_Flakes, 1):
+            Flake_Direction.append(random.randint(0, 2))
+        Mouse_Click_Event = 0
+
+    # Manage Frame:
+    Ignore, Frame = Camera.read()
+    Gray_Frame = cv2.cvtColor(Frame, cv2.COLOR_BGR2GRAY)
+    Flipped_Frame = cv2.flip(Gray_Frame, 1)
+    BGR_Gray_Frame = cv2.cvtColor(Flipped_Frame, cv2.COLOR_GRAY2BGR)
+    RGB_Frame = cv2.cvtColor(BGR_Gray_Frame, cv2.COLOR_BGR2RGB)
+
+    # Add Clouds:
+    Empty_Frame = numpy.zeros([Frame_Height, Frame_Width, 3], dtype = numpy.uint8)
+    Snow_Frame = Empty_Frame + Clouds
+
+    # Iterate Through Flakes:
+    for i in range (Number_Of_Flakes):
+
+        # Flake Ground Collision:
+        if int(Flake_Y_Position[i] > Frame_Height - 1):
+            Flake_Y_Position[i] = Start_Flake_Y_Position
+            Flake_X_Position[i] = (random.randint(1, Frame_Width - 1))
+
+        # Flake Left Edge Collision:
+        if int(Flake_X_Position[i] > Frame_Width - 1):
+            Flake_X_Position[i] = 0 + 1
+            Flake_Y_Position[i] = (random.randint(1, Frame_Height - 1))
+
+        # Flake Right Edge Collision:
+        if int(Flake_X_Position[i] < 0 + 1):
+            Flake_X_Position[i] = Frame_Width - 1
+            Flake_Y_Position[i] = (random.randint(1, Frame_Height - 1))
+
+        # Constrain Pixel Value Collection:
+        if (Flake_Y_Position[i] > 0 + Snow_Fall_Step_Size 
+            and Flake_Y_Position[i] < Frame_Height
+            and Flake_X_Position[i] > 0 + Snow_Fall_Step_Size 
+            and Flake_X_Position[i] < Frame_Width - Snow_Fall_Step_Size):
+                
+            # Declare Interactivity:
+            Interactive_Flake = False
+
+            # Collect Pixel Value:
+            Pixel_Value = 0
+            (Pixel_Value) = Flipped_Frame[Flake_Y_Position[i], Flake_X_Position[i]]
+
+            # If Pixel Value Breaches Darkness Threshold (Keep Flake Still):
+            if Pixel_Value < Darkness_Threshold:
+                Flake_Y_Position[i] = Flake_Y_Position[i] - Snow_Fall_Step_Size * 1  
+                
+                # Declare Interactivity:
+                Interactive_Flake = True
+
+                # Collect Upper Pixel Value:
+                Upper_Pixel_Value = 0
+                (Upper_Pixel_Value) = Flipped_Frame[Flake_Y_Position[i], Flake_X_Position[i]]
+
+                # If Upper Pixel Value Breaches Darkness Threshold (Move Flake Up):
+                if Upper_Pixel_Value < Darkness_Threshold:
+                    Flake_Y_Position[i] = Flake_Y_Position[i] - Snow_Fall_Step_Size * 2   
+                
+                    # Collect Upper Upper Pixel Value:
+                    Upper_Upper_Pixel_Value = 0
+                    (Upper_Upper_Pixel_Value) = Flipped_Frame[Flake_Y_Position[i], Flake_X_Position[i]]
+
+                    # If Upper Upper Pixel Value Breaches Darkness Threshold (Move Flake Down):
+                    if Upper_Upper_Pixel_Value < Darkness_Threshold:
+                        Flake_Y_Position[i] = Flake_Y_Position[i] + Snow_Fall_Step_Size * 3 
+
+                        # Declare Interactivity:
+                        Interactive_Flake = False
+
+        # Move Flakes Down:
+        Flake_Y_Position[i] = Flake_Y_Position[i] + Snow_Fall_Step_Size
+        
+        # Flake Direction:
+        if Interactive_Flake == False:
+            if Flake_Direction[i] == 0:
+                Flake_X_Position[i] = Flake_X_Position[i] + Horizontal_Step_Size
+            if Flake_Direction[i] == 1:
+                Flake_X_Position[i] = Flake_X_Position[i] + 0
+            if Flake_Direction[i] == 2:
+                Flake_X_Position[i] = Flake_X_Position[i] - Horizontal_Step_Size
+
+        # Flake Size:
+        if int(Flake_X_Position[i] % 2) == 1:
+            Snow_Flake_Size = Large_Snow_Flake
+        if int(Flake_X_Position[i] % 2) == 0:
+            Snow_Flake_Size = Small_Snow_Flake        
+
+        # Render Flakes:
+        cv2.putText(Snow_Frame, Snow_Flake, (int(Flake_X_Position[i]), int(Flake_Y_Position[i])), 
+                    Font, Snow_Flake_Size, Snow_Flake_Colour, Snow_Flake_Thickness)
+
+        # Calm Text:
+        cv2.rectangle(Snow_Frame, (30, 30), (180, 90), 
+                      Rectangle_Colour, Rectangle_Thickness)
+        cv2.rectangle(Snow_Frame, (30, 30), (180, 90), 
+                      Rectangle_Outline_Colour, Rectangle_Outline_Thickness)
+        cv2.putText(Snow_Frame, "Calm", (40, 65), 
+                    Font, Font_Scale, Text_Colour, Text_Thickness)
+
+        # More Flakes Text:
+        cv2.rectangle(Snow_Frame, (30, 600), (180, 660), 
+                      Rectangle_Colour, Rectangle_Thickness)
+        cv2.rectangle(Snow_Frame, (30, 600), (180, 660), 
+                      Rectangle_Outline_Colour, Rectangle_Outline_Thickness)
+        cv2.putText(Snow_Frame, "More", (40, 625), 
+                    Font, Font_Scale, Text_Colour, Text_Thickness)        
+        cv2.putText(Snow_Frame, "Flakes", (40, 648), 
+                    Font, Font_Scale, Text_Colour, Text_Thickness)
+
+        # More Wind Text:
+        cv2.rectangle(Snow_Frame, (1090, 30), (1240, 90), 
+                      Rectangle_Colour, Rectangle_Thickness)
+        cv2.rectangle(Snow_Frame, (1090, 30), (1240, 90), 
+                      Rectangle_Outline_Colour, Rectangle_Outline_Thickness)
+        cv2.putText(Snow_Frame, "More", (1100, 55), 
+                    Font, Font_Scale, Text_Colour, Text_Thickness)        
+        cv2.putText(Snow_Frame, "Wind", (1100, 78), 
+                    Font, Font_Scale, Text_Colour, Text_Thickness)
+
+        # Blizzard Text:
+        cv2.rectangle(Snow_Frame, (1090, 600), (1240, 660), 
+                      Rectangle_Colour, Rectangle_Thickness)
+        cv2.rectangle(Snow_Frame, (1090, 600), (1240, 660), 
+                      Rectangle_Outline_Colour, Rectangle_Outline_Thickness)
+        cv2.putText(Snow_Frame, "Blizzard", (1100, 635), 
+                    Font, Font_Scale, Text_Colour, Text_Thickness)
+
+    # Add Weighted Frame:
+    Display_Frame = cv2.addWeighted(BGR_Gray_Frame, Frame_Mix, Snow_Frame, Snow_Opacity, Snow_Frame_Scalar)
+
+    # Display Snow Window 3:
+    cv2.imshow('Snow Window 3', Display_Frame)
+    cv2.moveWindow('Snow Window 3', 0, 0)
+
+    # Check For 'q' To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Thanks For Watching
+# Merry Christmas
