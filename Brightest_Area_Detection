@@ -1,0 +1,71 @@
+
+# Brightest Area Detection By BigBogeyFace:
+
+# Import OpenCv2:
+import cv2
+
+# Define Frame Resolution (720p):
+Frame_Width = 1280
+Frame_Height = 720
+
+# Define Small Frame Resolution (72p):
+Small_Frame_Width = int(Frame_Width * .1)
+Small_Frame_Height = int(Frame_Height * .1)
+
+# Setup Camera:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Global Variables:
+Circle_Radius = 10
+Circle_Colour = (0, 0, 255)
+Circle_Line_Thickness = 2
+
+# Begin Program Loop:
+while True:
+
+    # Manage Frames:
+    Ignore, Frame = Camera.read()
+    Flipped_Frame = cv2.flip(Frame, 1)
+    Small_Frame = cv2.resize(Flipped_Frame, (Small_Frame_Width, Small_Frame_Height))
+
+    # Reset Variable:
+    Highest_Composite_Value = 0
+
+    # Iterate Through All Pixels In Small Frame:
+    for i in range (0, Small_Frame_Height, 1):
+        for j in range (0, Small_Frame_Width, 1):
+
+            # Unpack BGR Uint Values:
+            (Blue_Pixel_Uint_Value, Green_Pixel_Uint_Value, Red_Pixel_Uint_Value) = Small_Frame[i, j]
+
+            # Convert BGR Uint Values Into RGB Int Values:
+            Red_Pixel_Value = int(Red_Pixel_Uint_Value)
+            Green_Pixel_Value = int(Green_Pixel_Uint_Value)
+            Blue_Pixel_Value = int(Blue_Pixel_Uint_Value) 
+
+            # Calculate Composite RGB Int Value:
+            Composite_Pixel_Value = Red_Pixel_Value + Green_Pixel_Value + Blue_Pixel_Value
+
+            # Obtain Highest Composite RGB Value:
+            if Composite_Pixel_Value > Highest_Composite_Value:
+                Highest_Composite_Value = Composite_Pixel_Value
+
+                # Collect Highest Composite RGB Value Coordinates:
+                X_Position = j
+                Y_Position = i
+
+    # Draw Circle On Flipped Frame At Highest Composite RGB Value Coordinates:
+    cv2.circle(Flipped_Frame, (int(X_Position * 10), int(Y_Position * 10)), 
+               Circle_Radius, Circle_Colour, Circle_Line_Thickness)
+
+    # Show Frame:
+    cv2.imshow('Brightest Area Detection Display Window', Flipped_Frame)
+    cv2.moveWindow('Brightest Area Detection Display Window', 0, 0)
+
+    # Check For "Q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
