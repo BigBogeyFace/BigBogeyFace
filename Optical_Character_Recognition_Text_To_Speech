@@ -1,0 +1,60 @@
+
+# Optical Character Recognition Text To Speech By BigBogeyFace:
+
+# Import Essentials:
+import cv2
+from pytesseract import pytesseract
+import pyttsx3
+
+# Reference Path To Tesseract File:
+pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+
+# Text To Speech Object:
+text_speech = pyttsx3.init()
+
+# Camera Resolution (720p):
+Frame_Width = 1280
+Frame_Height = 720
+
+# Camera Setup:
+Camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+Camera.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+Camera.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+Camera.set(cv2.CAP_PROP_FPS, 30)
+
+# Text Globals:
+Font = cv2.FONT_HERSHEY_SIMPLEX
+Text_Scale = 1
+Text_Color = (0, 255, 0)
+Text_Thickness = 2
+Text_Position = (100, 100)
+
+# Begin Program Loop:
+while True:
+
+    # Capture Frame:
+    Ignore, Frame = Camera.read()
+
+    # Convert Colour Space:
+    Gray_Frame = cv2.cvtColor(Frame, cv2.COLOR_BGR2GRAY)
+    Was_Gray_Frame = cv2.cvtColor(Gray_Frame, cv2.COLOR_GRAY2BGR)
+
+    # Find Text In Gray Frame:
+    Found_Text = pytesseract.image_to_string(Gray_Frame)
+
+    # Display Found Text:
+    cv2.putText(Was_Gray_Frame, Found_Text, Text_Position, Font, 
+                Text_Scale, Text_Color, Text_Thickness)
+
+    # Say Found Text:
+    text_speech.say(Found_Text)
+    text_speech.runAndWait()
+
+    # Display Frame:
+    cv2.imshow('Camera', Was_Gray_Frame)
+    cv2.moveWindow('Camera', 0, 0)
+
+    # Check For "q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+Camera.release()
