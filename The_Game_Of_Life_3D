@@ -1,0 +1,212 @@
+  
+# The Game of Life 3D By BigBogeyFace:
+ 
+# Import Essentials:
+from vpython import *
+import numpy
+import time
+
+# Setup Canvas:
+Canvas = canvas (width = 1260, height = 600)
+Canvas.autoscale = False
+
+# Global Variables:
+Scale = 10
+Number_Of_Cells_Across = 30
+Number_Of_Cells_Down = 30
+Number_Of_Cells_Deep = 30
+Cell_Colour = color.green
+Cell_Name = []
+Dead = 0
+Alive = 1
+
+# Generate Empty Grid:
+Grid = numpy.zeros([Number_Of_Cells_Deep, Number_Of_Cells_Down, 
+                    Number_Of_Cells_Across], dtype = numpy.uint8)
+
+# Declare Cell Life:
+Cell_Life_Array = [0, 29, 870, 899, 
+
+                   26100, 26129, 26970, 26999, 
+
+                   13065, 13066, 13067, 13097, 13126]
+
+# Update Grid With Cell Life:
+Cell_Counter = 0
+for h in range (0, Number_Of_Cells_Deep, 1):
+    for i in range (0, Number_Of_Cells_Down, 1):
+        for j in range (0, Number_Of_Cells_Across, 1):
+            for k in range (0, len(Cell_Life_Array), 1):
+                if Cell_Life_Array[k] == Cell_Counter:
+                    Grid[h][i][j] = 1
+            Cell_Counter = Cell_Counter + 1
+
+# Generate Cell Names:
+Cell_Counter = 0
+for h in range (0, Number_Of_Cells_Deep, 1):
+    for i in range (0, Number_Of_Cells_Down, 1):
+        for j in range (0, Number_Of_Cells_Across, 1):
+            Cell_Name.append (str (Cell_Counter))
+            Cell_Counter = Cell_Counter + 1
+
+# Render Grid:
+Cell_Counter = 0
+Z_Pos = - (int(Number_Of_Cells_Deep / 2) * Scale)
+for h in range (0, Number_Of_Cells_Deep, 1):
+    Y_Pos = - (int(Number_Of_Cells_Across / 2) * Scale)
+    for i in range (0, Number_Of_Cells_Down, 1): 
+        X_Pos = - (int(Number_Of_Cells_Down / 2) * Scale)
+        for j in range (0, Number_Of_Cells_Across, 1): 
+            Cell_Name[Cell_Counter] = box(length = Scale, width = Scale, height = Scale, 
+                                          pos = vector(X_Pos, Y_Pos, Z_Pos), color = Cell_Colour, 
+                                          visible = True, shininess = 0, opacity = 1)
+
+            # Render Cells:
+            if Grid[h][i][j] == Alive:
+                Cell_Name[Cell_Counter].visible = True  
+                Cell_Counter = Cell_Counter + 1
+            if Grid[h][i][j] == Dead:
+                Cell_Name[Cell_Counter].visible = False  
+                Cell_Counter = Cell_Counter + 1
+
+            # Update Cell Positions:
+            X_Pos = X_Pos + Scale
+        Y_Pos = Y_Pos + Scale
+    Z_Pos = Z_Pos + Scale
+
+# Courtesy Delay:
+time.sleep(8)
+
+# Begin Program Loop:
+while True:
+    
+    # Generate Interim Grid:
+    Interim_Grid = numpy.zeros([Number_Of_Cells_Deep, Number_Of_Cells_Down, 
+                                Number_Of_Cells_Across], dtype = numpy.uint8)
+
+    # Iterate Through Grid:
+    Cell_Counter = 0
+    for h in range (0, Number_Of_Cells_Deep, 1):
+        for i in range (0, Number_Of_Cells_Down, 1):
+            for j in range (0, Number_Of_Cells_Across, 1):
+                Live_Cell_Count = 0
+                if (h > 0 and h < Number_Of_Cells_Deep - 1 
+                    and i > 0 and i < Number_Of_Cells_Down - 1
+                    and j > 0 and j < Number_Of_Cells_Across - 1):
+
+                    # Count Surrounding Living Cells:
+                    if Grid[h - 1][i - 1][j - 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h - 1][i - 1][j] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h - 1][i - 1][j + 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h - 1][i][j - 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h - 1][i][j] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h - 1][i][j + 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h - 1][i + 1][j - 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h - 1][i + 1][j] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h - 1][i + 1][j + 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h][i - 1][j - 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h][i - 1][j] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h][i - 1][j + 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h][i][j - 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h][i][j] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h][i][j + 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h][i + 1][j - 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h][i + 1][j] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h][i + 1][j + 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h + 1][i - 1][j - 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h + 1][i - 1][j] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h + 1][i - 1][j + 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h + 1][i][j - 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h + 1][i][j] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h + 1][i][j + 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h + 1][i + 1][j - 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h + 1][i + 1][j] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+                    if Grid[h + 1][i + 1][j + 1] == 1:
+                        Live_Cell_Count = Live_Cell_Count + 1
+
+                # Cell Dies, from Loneliness:
+                if (Live_Cell_Count == 1):
+                    if Grid[h][i][j] == Alive:
+                        Interim_Grid[h][i][j] = Dead  
+                    if Grid[h][i][j] == Dead:
+                        Interim_Grid[h][i][j] = Dead 
+                    Cell_Colour = color.red
+  
+                # Cell Remains, Dead or Alive:
+                if (Live_Cell_Count == 2):
+                    if Grid[h][i][j] == Alive:
+                        Interim_Grid[h][i][j] = Alive  
+                    if Grid[h][i][j] == Dead:
+                        Interim_Grid[h][i][j] = Dead  
+                    Cell_Colour = color.blue
+  
+                # Cell is Born:
+                if (Live_Cell_Count == 3):
+                    if Grid[h][i][j] == Alive:
+                        Interim_Grid[h][i][j] = Alive  
+                    if Grid[h][i][j] == Dead:
+                        Interim_Grid[h][i][j] = Alive  
+                    Cell_Colour = color.green
+
+                # Cell Dies, from Overcrowding:
+                if (Live_Cell_Count >= 4):
+                    if Grid[h][i][j] == Alive:
+                        Interim_Grid[h][i][j] = Dead  
+                    if Grid[h][i][j] == Dead:
+                        Interim_Grid[h][i][j] = Dead   
+                    Cell_Colour = color.yellow
+
+                # Render Cells:
+                if Grid[h][i][j] == Alive:
+                    Cell_Name[Cell_Counter].color = Cell_Colour
+                    Cell_Name[Cell_Counter].visible = True   
+                    Cell_Counter = Cell_Counter + 1
+                if Grid[h][i][j] == Dead:
+                    Cell_Name[Cell_Counter].color = Cell_Colour
+                    Cell_Name[Cell_Counter].visible = False  
+                    Cell_Counter = Cell_Counter + 1
+
+    # Update Grid:
+    Grid = Interim_Grid
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 10 Million Points To Whomever Can Find The Glider
+# The Code Is Available From The Link In The Description
+# Thanks for watching
