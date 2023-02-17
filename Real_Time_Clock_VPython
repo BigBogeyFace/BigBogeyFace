@@ -1,0 +1,113 @@
+# Clock Working In Real Time By Big Bogey Face
+
+# Import Essentials:
+from vpython import*
+import numpy as np
+import time
+import winsound
+
+# Tick Sound:
+Tick_Frequency = 1500
+Tick_Duration = 300
+
+# Tock Sound:
+Tock_Frequency = 1000
+Tock_Duration = 300
+
+# vPython Canvas:
+My_Canvas=canvas(width=1260,height=600,Canvas_BackGround_Colour=color.gray(0.4))
+
+# Clock Dimension Variables:
+Clock_Radius=2
+Clock_Thickness=Clock_Radius/10
+
+# Major Tick Marks:
+Major_Tick_Length=Clock_Radius/7
+Major_Tick_Width=Clock_Thickness*1.2
+Major_Tick_Thickness=2*np.pi*Clock_Radius/400
+
+# Minor Tick Marks:
+Minor_Tick_Length=Clock_Radius/12
+Minor_Tick_Width=Clock_Thickness*1.2
+Minor_Tick_Thickness=2*np.pi*Clock_Radius/600
+
+# Clock Hand Dimensions:
+Second_Hand_Radius=Clock_Thickness/12
+Second_Hand_Length=Clock_Radius/2+Clock_Radius/4
+Minute_Hand_Radius=Clock_Thickness/4
+Minute_Hand_Length=Clock_Radius/2+Clock_Radius/4
+Hour_Hand_Radius=Clock_Thickness/4
+Hour_Hand_Length=Clock_Radius/2+Clock_Radius/8
+Hand_Gap=Second_Hand_Radius
+
+# Clock Physical Attributes:
+Clock_Face=cylinder(axis=vector(0,0,1),color=color.white,length=Clock_Thickness,radius=Clock_Radius,pos=vector(0,0,-Clock_Thickness/2))
+Clock_Edge=ring(pos=vector(0,0,0),axis=vector(0,0,1),radius=Clock_Radius+Clock_Radius/10,thickness=Clock_Thickness,colour=color.yellow)
+Clock_Face=cylinder(axis=vector(0,0,1),color=color.white,length=Clock_Thickness,radius=Clock_Radius+Clock_Radius/10,pos=vector(0,0,-Clock_Thickness))
+Clock_Hour_Shaft=cylinder(axis=vector(0,0,1),color=color.black,length=Clock_Thickness+Clock_Thickness/20,radius=Clock_Radius/30,pos=vector(0,0,0))
+Clock_Minute_Shaft=cylinder(axis=vector(0,0,1),color=color.black,length=Clock_Thickness+Clock_Thickness/1.5,radius=Clock_Radius/40,pos=vector(0,0,0))
+Clock_Second_Shaft=cylinder(axis=vector(0,0,1),color=color.black,length=Clock_Thickness+Clock_Thickness,radius=Clock_Radius/50,pos=vector(0,0,0))
+Clock_Second_Shaft_Cap=cylinder(axis=vector(0,0,1),color=color.black,length=Clock_Thickness/30,radius=Clock_Radius/25,pos=vector(0,0,Clock_Thickness-Clock_Thickness/5+Second_Hand_Radius+Minute_Hand_Radius*4+Hand_Gap))
+
+# Generate Major Tick Marks:
+for theta in np.linspace(0,2*np.pi,13):
+    Major_Tick=box(axis=vector(Clock_Radius*np.cos(theta),Clock_Radius*np.sin(theta),0),
+    color=color.black,length=Major_Tick_Length,width=Major_Tick_Width,height=Major_Tick_Thickness,
+    pos=vector((Clock_Radius-Major_Tick_Length/2)*np.cos(theta),(Clock_Radius-Major_Tick_Length/2)*np.sin(theta),0))
+
+# Generate Minor Tick Marks:
+for theta in np.linspace(0,2*np.pi,61):
+    Minor_Tick=box(axis=vector(Clock_Radius*np.cos(theta),Clock_Radius*np.sin(theta),0),
+    color=color.black,length=Minor_Tick_Length,width=Minor_Tick_Width,height=Minor_Tick_Thickness,
+    pos=vector((Clock_Radius-Minor_Tick_Length/2)*np.cos(theta),(Clock_Radius-Minor_Tick_Length/2)*np.sin(theta),0))
+
+# Generate Clock Hands:
+Second_Hand=cylinder(pos=vector(0,0,Clock_Thickness-Clock_Thickness/5+Minute_Hand_Radius*2+Hour_Hand_Radius*2+Hand_Gap),radius=Second_Hand_Radius,length=Second_Hand_Length,color=color.black)
+Second_Hand_Ball=sphere(radius=Second_Hand_Radius,pos=vector(0,0,Clock_Thickness+Minute_Hand_Radius*2+Hour_Hand_Radius*2+Hand_Gap),color=color.black)
+Minute_Hand=cylinder(pos=vector(0,0,Clock_Thickness-Clock_Thickness/5+Hour_Hand_Radius*2+Hand_Gap),radius=Minute_Hand_Radius,length=Minute_Hand_Length,color=color.black)
+Minute_Hand_Ball=sphere(radius=Minute_Hand_Radius,pos=vector(0,0,Clock_Thickness+Hour_Hand_Radius*2+Hand_Gap),color=color.black)
+Hour_Hand=cylinder(pos=vector(0,0,Clock_Thickness-Clock_Thickness/5),radius=Hour_Hand_Radius,length=Hour_Hand_Length,color=color.black)
+Hour_Hand_Ball=sphere(radius=Hour_Hand_Radius,pos=vector(0,0,Clock_Thickness),color=color.black)
+
+# Hand Start Angles (12:00:00):
+Second_Start_Angle=np.pi/2
+Minute_Start_Angle=np.pi/2
+Hour_Start_Angle=np.pi/2
+
+# Initialising Tick Tock Timer:
+Tick=False
+Tock=True
+
+# Begin Program Loop:
+while True:
+
+    # What's The Time Mr Wolf?
+    Real_Time=time.localtime(time.time())
+    Second=Real_Time[5]
+    Minute=Real_Time[4]
+    Hour=Real_Time[3]
+    if Hour > 12:
+        Hour = Hour - 12
+
+    # Hand Positions:
+    Second_Angle=Second_Start_Angle-Second*(2*np.pi/60)
+    Minute_Angle=Minute_Start_Angle-Minute*(2*np.pi/60)
+    Hour_Angle=Hour_Start_Angle-Hour*(2*np.pi/12)
+       
+    # Hand Movement:
+    Second_Hand.axis=vector(Second_Hand_Length*np.cos(Second_Angle),Second_Hand_Length*np.sin(Second_Angle),0)
+    Second_Hand_Ball.pos=vector(Second_Hand_Length*np.cos(Second_Angle),Second_Hand_Length*np.sin(Second_Angle),Clock_Thickness-Clock_Thickness/5+Minute_Hand_Radius*2+Hour_Hand_Radius*2+Hand_Gap)
+    Minute_Hand.axis=vector(Minute_Hand_Length*np.cos(Minute_Angle),Minute_Hand_Length*np.sin(Minute_Angle),0)
+    Minute_Hand_Ball.pos=vector(Minute_Hand_Length*np.cos(Minute_Angle),Minute_Hand_Length*np.sin(Minute_Angle),Clock_Thickness-Clock_Thickness/5+Hour_Hand_Radius*2+Hand_Gap)
+    Hour_Hand.axis=vector(Hour_Hand_Length*np.cos(Hour_Angle),Hour_Hand_Length*np.sin(Hour_Angle),0)
+    Hour_Hand_Ball.pos=vector(Hour_Hand_Length*np.cos(Hour_Angle),Hour_Hand_Length*np.sin(Hour_Angle),Clock_Thickness-Clock_Thickness/5)
+
+    # Tick Tock Audio:
+    if Tock==True and Second % 2 == 1 :
+        winsound.Beep(Tick_Frequency,Tick_Duration)
+        Tick=True
+        Tock=False
+    if Tick==True and Second % 2 == 0 :
+        winsound.Beep(Tock_Frequency,Tock_Duration)
+        Tock=True
+        Tick=False
