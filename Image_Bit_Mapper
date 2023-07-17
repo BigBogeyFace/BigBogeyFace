@@ -1,0 +1,96 @@
+
+# Image Bit Mapper By BigBogeyFace:
+
+# Import Essentials:
+import cv2
+import numpy
+import pprint
+
+# Define Resolution:
+Width = 128
+Height = 64
+Xpos = 0
+Print_Text = "Press 'p' to Print Bit Map"
+Print_Text_Position = (20, 50)
+Quit_Text = "Press 'q' to Quit"
+Quit_Text_Position = (20, 100)
+Font = cv2.FONT_HERSHEY_SIMPLEX
+Font_Scale = 1
+Colour = (255,0,0)
+Thickness = 2
+
+# Collect Image:
+Image = cv2.imread("Images_for_BitMapper/R_Pi_Logo.webp")
+
+# Resize Image:
+Resized_Image = cv2.resize(Image,(Width,Height))
+
+# Gray Scale Image:
+Gray_Image = cv2.cvtColor(Resized_Image, cv2.COLOR_BGR2GRAY)
+
+# Define Variables:
+Monochromatic_Image = numpy.zeros([Height, Width], dtype = numpy.uint8)
+Threshold = 95
+
+# Define Trackbar Window:
+Track_Bar_Window_Data = numpy.zeros([Height * 2, Width * 4], dtype = numpy.uint8)
+
+# Define Trackbar Function:
+def Track_Bar_Function(value):
+    global Threshold
+    Threshold = value
+
+# Generate Contrast Trackbar:
+cv2.namedWindow('Track_Bar_Window')
+cv2.createTrackbar('Contrast', 'Track_Bar_Window', Threshold, 255, Track_Bar_Function)
+
+# Begin Program Loop:
+while True:
+
+    # Setup Keyboard_Key_Press:
+    Keyboard_Key_Press = cv2.waitKey(1) & 0xFF
+
+    # Iterate Through Gray_Image Pixels:
+    BitMap_Image = []
+    for i in range (0, Height, 1):
+        Bit_Row = []
+        for j in range (0, Width, 1):
+
+            # Generate Monochromatic_Image and Bit_Map:
+            if (Gray_Image[i][j]) >= Threshold:
+                Monochromatic_Image[i][j] = 255
+                Bit_Row.append(1)
+            if (Gray_Image[i][j]) < Threshold:
+                Monochromatic_Image[i][j] = 0
+                Bit_Row.append(0) 
+        BitMap_Image.append(Bit_Row)
+            
+    # Print Untruncated BitMap_Image Array:
+    if Keyboard_Key_Press == ord('p'): 
+        Pretty_Print = pprint.PrettyPrinter(width = 1000)
+        print("")
+        print("BitMap_Image = ")
+        Pretty_Print.pprint(BitMap_Image)
+        print("")
+
+    # Display Resized Image:
+    cv2.imshow('Resized', Resized_Image)
+    cv2.moveWindow('Resized', 0, 0)
+
+    # Display Gray Image:
+    cv2.imshow('Gray', Gray_Image)
+    cv2.moveWindow('Gray', Width, 0)
+
+    # Display BitMap Image:
+    cv2.imshow('Monochrome', Monochromatic_Image)
+    cv2.moveWindow('Monochrome', Width * 2, 0)
+
+    # Display Track Bar Window:
+    cv2.putText(Track_Bar_Window_Data, Print_Text, Print_Text_Position, Font, Font_Scale, Colour, Thickness)
+    cv2.putText(Track_Bar_Window_Data, Quit_Text, Quit_Text_Position, Font, Font_Scale, Colour, Thickness)
+    cv2.imshow('Track_Bar_Window', Track_Bar_Window_Data)
+    cv2.moveWindow('Track_Bar_Window', 0, Height + 30)
+
+    # Check For "q" To Quit:
+    if Keyboard_Key_Press == ord('q'):
+        break
