@@ -1,0 +1,75 @@
+
+# OLED Bouncing Ball ScreenSaver By BigBogeyFace:
+
+# Program Dependencies:
+from machine import Pin, I2C
+from ssd1306 import SSD1306_I2C
+import time
+
+# Display Perameters:
+Display_Width = 128
+Display_Height = 64
+
+# Display Setup:
+i2c = I2C(1, sda = Pin(2), scl = Pin(3), freq = 400000)
+          
+# Define Display Object:
+Display = SSD1306_I2C(Display_Width, Display_Height, i2c)
+  
+# Global Variables:
+Ball_Length = 10
+Ball_Height = 10
+Brightness = 10
+Ball_X_Position = 10
+Ball_Y_Position = 10
+Delta_X = 2
+Delta_Y = 1
+Speed = .01
+Ball = [[0,0,0,0,1,1,0,0,0,0],
+        [0,0,1,1,0,0,1,1,0,0],
+        [0,1,1,0,0,0,0,1,1,0],
+        [0,1,0,0,0,0,0,0,1,0],
+        [1,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,1],
+        [0,1,0,0,0,0,0,0,1,0],
+        [0,1,1,0,0,0,0,1,1,0],
+        [0,0,1,1,0,0,1,1,0,0],
+        [0,0,0,0,1,1,0,0,0,0]]
+ZzZz = .01
+
+# Set Display Contrast:
+Display.contrast(Brightness)
+
+# Begin Program Loop:
+while True:
+       
+    # Clear Display:
+    Display.fill(0)
+        
+    # Draw Border:
+    Display.rect(0, 0, 128, 64, 1)
+      
+    # Update Ball Position:
+    Ball_X_Position = Ball_X_Position + Delta_X
+    Ball_Y_Position = Ball_Y_Position + Delta_Y
+          
+    # Check for Wall Interaction:
+    if Ball_X_Position < 1:
+        Delta_X = Delta_X * (- 1)
+    if Ball_X_Position > (Display_Width - (Ball_Length) - 1):
+        Delta_X = Delta_X * (- 1)
+    if Ball_Y_Position < 1:
+        Delta_Y = Delta_Y * (- 1)
+    if Ball_Y_Position > (Display_Height - (Ball_Height) - 1):
+        Delta_Y = Delta_Y * (- 1)
+
+    # Display Ball:
+    for j in range (0, Ball_Length, 1):
+        for i in range (0, Ball_Height, 1):
+            Display.pixel(Ball_X_Position + i, Ball_Y_Position + j, (Ball[j][i]))
+
+    # Render Graphic:
+    Display.show()
+
+    # Take a Nap:
+    time.sleep(ZzZz)
