@@ -1,0 +1,108 @@
+
+# Hyperbolic Parabolic Screen Savers By BigBogeyFace:
+
+# Program Dependencies:
+from machine import Pin, I2C
+from ssd1306 import SSD1306_I2C
+import time
+import math
+import random
+
+# Display Perameters:
+Display_Width = 128
+Display_Height = 64
+
+# Display Setup:
+i2c = I2C(1, sda = Pin(2), scl = Pin(3), freq = 400000)
+          
+# Display Object:
+Display = SSD1306_I2C(Display_Width, Display_Height, i2c)
+    
+# Global Variable Adjustment:
+X_Scale = 10
+Y_Scale = 8
+Shape_X_Position = 64
+Shape_Y_Position = 32
+Rotation = 0
+Brightness = 10
+Play = True
+Delta_X = 1
+Delta_Y = 1
+Rain_Drop = "."
+Splash = "\/"
+Number_Rain_Drops = 10
+Droplet_X_Positions = []
+Droplet_Y_Positions = []
+Fall_Factor = 1
+Hit_Chip = False
+
+# Initialise Droplet_X_Positions:
+for i in range(0, Number_Rain_Drops, 1):
+    Droplet_X_Positions.append(random.randint(0, Display_Width))
+
+# Initialise Y_Positions:
+for i in range(0, Number_Rain_Drops, 1):
+    Droplet_Y_Positions.append(random.randint(0, Display_Height))
+
+# Begin Program Loop:
+while True:
+        
+    # Draw Border:
+    Display.rect(0, 0, 128, 64, 1)
+          
+    # Update Text Position:
+    Shape_X_Position = Shape_X_Position + Delta_X
+    Shape_Y_Position = Shape_Y_Position + Delta_Y
+
+    # Check for Wall Interaction:
+    if Shape_X_Position < X_Scale:
+        Delta_X = Delta_X * (- 1)
+    if Shape_X_Position > Display_Width - X_Scale:
+        Delta_X = Delta_X * (- 1)
+    if Shape_Y_Position < Y_Scale:
+        Delta_Y = Delta_Y * (- 1)
+    if Shape_Y_Position > Display_Height - Y_Scale:
+        Delta_Y = Delta_Y * (- 1)
+
+    # Plot Potato Chip:
+    for Degree in range(0, 360, 1):
+        Radius = Degree * (2 * 3.14) / 360
+        Pixel_X_Position = Shape_X_Position + (int(X_Scale * math.cos(Radius + Rotation)))
+        Pixel_Y_Position = Shape_Y_Position + (int(.5 * Y_Scale * math.sin(2 * Radius)))
+        Display.pixel(Pixel_X_Position, Pixel_Y_Position, 1)
+                        
+    # Generate Rain:
+    for j in range (0, Number_Rain_Drops, 1):
+        Display.text(Rain_Drop, Droplet_X_Positions[j], Droplet_Y_Positions[j])
+        Droplet_Y_Positions[j] = Droplet_Y_Positions[j] + Fall_Factor
+            
+        # Ground Splash Down:
+        if  (Droplet_Y_Positions[j] > (Display_Height - 2)):
+            Display.text(Splash, Droplet_X_Positions[j], 58)
+                
+        # Potato Chip Splash Down:
+        if  (Droplet_X_Positions[j] > (Shape_X_Position - X_Scale) and
+            Droplet_X_Positions[j] < (Shape_X_Position + X_Scale) and
+            Droplet_Y_Positions[j] > (Shape_Y_Position - int(Y_Scale * .5)) and
+            Droplet_Y_Positions[j] < (Shape_Y_Position + int(Y_Scale * .5))):
+            Display.text(Splash, Droplet_X_Positions[j], Droplet_Y_Positions[j])
+            Hit_Chip = True
+            Hit_Chip_Number = j
+
+        # Drop Hits Floor:
+        if Droplet_Y_Positions[j] > Display_Height:
+            Droplet_X_Positions[j] = (random.randint(0, Display_Width))
+            Droplet_Y_Positions[j] = 0
+
+    # Render Display:
+    Display.show()
+    Display.fill(0)
+    Rotation = Rotation + 3 * 3 * 3.14 / 360
+        
+    # Drop Disappears after Potato Chip Splash Down:
+    if Hit_Chip == True:
+        Droplet_X_Positions[Hit_Chip_Number] = (random.randint(0, Display_Width))
+        Droplet_Y_Positions[Hit_Chip_Number] = 0
+        Hit_Chip = False
+        
+          
