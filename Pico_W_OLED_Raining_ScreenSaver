@@ -1,0 +1,70 @@
+
+# OLED Raining ScreenSaver By BigBogeyFace:
+
+# Program Dependencies:
+#from machine import Pin, I2C
+#from ssd1306 import SSD1306_I2C
+import time
+import random
+import turtle
+
+# Display Perameters:
+Display_Width = 128
+Display_Height = 64
+
+# Display Setup:
+i2c = I2C(1, sda = Pin(2), scl = Pin(3), freq = 400000)
+          
+# Define Display Object:
+Display = SSD1306_I2C(Display_Width, Display_Height, i2c)
+  
+# Global Variables:
+Rain_Drop = "."
+Splash = "\/"
+Display.contrast(10)
+Number_Rain_Drops = 10
+X_Positions = []
+Y_Positions = []
+Fall_Factor = 1
+Brightness = 10
+ZzZz = .01
+
+# Set Display Contrast:
+Display.contrast(Brightness)
+
+# Initialise X_Positions:
+for i in range(0, Number_Rain_Drops, 1):
+    X_Positions.append(random.randint(0, Display_Width))
+
+# Initialise Y_Positions:
+for i in range(0, Number_Rain_Drops, 1):
+    Y_Positions.append(random.randint(0, Display_Height))
+
+# Begin Program Loop:
+while True:
+       
+    # Clear Display:
+    Display.fill(0)
+        
+    # Draw Floor:
+    Display.line(0, 63, 128, 63, 1)
+      
+    # Generate Rain:
+    for i in range (0, Number_Rain_Drops, 1):
+        Display.text(Rain_Drop, X_Positions[i], Y_Positions[i])
+        Y_Positions[i] = Y_Positions[i] + Fall_Factor
+        
+        # Splash Down:
+        if Y_Positions[i] > (Display_Height - 2):
+            Display.text(Splash, X_Positions[i], 58)
+
+        # Drop Hits Floor:
+        if Y_Positions[i] > Display_Height:
+            X_Positions[i] = (random.randint(0, Display_Width))
+            Y_Positions[i] = 0
+
+    # Render Graphic:
+    Display.show()
+
+    # Take a Nap:
+    time.sleep(ZzZz)
