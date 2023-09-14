@@ -1,0 +1,128 @@
+      
+# OLED Game Of Life By BigBogeyFace:
+
+# Import Dependencies:
+from machine import Pin, I2C
+from ssd1306 import SSD1306_I2C
+import random
+import time
+
+# Define Perameters:
+Display_Width = 128
+Display_Height = 64
+
+# Declare Definitions:
+i2c = I2C(1, sda = Pin(2), scl = Pin(3), freq = 3200000)
+          
+# Generate Instantiations:
+Display = SSD1306_I2C(Display_Width, Display_Height, i2c)
+
+# Initialise Current Grid:
+Current_Grid = [[0 for i in range(Display_Width + 1)] for j in range(Display_Height + 1)]
+
+# Initialise Random Living Cells:
+for i in range (0, 1000, 1):
+    Random_X = random.randint(0,127)
+    Random_Y = random.randint(0,63)
+    Current_Grid[Random_Y][Random_X] = 1
+
+# Glider:
+#Current_Grid[10][10] = 1
+#Current_Grid[11][11] = 1
+#Current_Grid[12][11] = 1
+#Current_Grid[12][10] = 1
+#Current_Grid[12][9] = 1
+
+# Oscillator:
+#Current_Grid[10][10] = 1
+#Current_Grid[10][11] = 1
+#Current_Grid[10][12] = 1
+
+# Initialise Future Grid:
+Future_Grid = [[0 for i in range(Display_Width + 1)] for j in range(Display_Height + 1)]
+
+# Splash Screen:
+Display.text("John Conway's", 10, 20)
+Display.text("Game Of Life", 10, 40)
+Display.show()
+time.sleep(10)
+
+# Begin Program Loop:
+while True:
+      
+    # Display Current Grid:
+    for i in range (0, Display_Width, 1):
+        for j in range (0, Display_Height, 1):
+            Display.pixel(i, j, Current_Grid[j][i])
+    Display.show()
+
+    # Iterate Through Current Grid:
+    for i in range (0, Display_Width, 1):
+        for j in range (0, Display_Height, 1):
+            Surrounding_Living_Cells = 0
+                
+            # Top Left
+            if (Current_Grid[j-1][i-1] == 1):
+                Surrounding_Living_Cells = Surrounding_Living_Cells + 1
+                        
+            # Top Middle
+            if (Current_Grid[j][i-1] == 1):
+                Surrounding_Living_Cells = Surrounding_Living_Cells + 1
+                        
+            # Top Right
+            if (Current_Grid[j+1][i-1] == 1):
+                Surrounding_Living_Cells = Surrounding_Living_Cells + 1
+                        
+            # Middle Left
+            if (Current_Grid[j-1][i] == 1):
+                Surrounding_Living_Cells = Surrounding_Living_Cells + 1
+                                             
+            # Middle Right
+            if (Current_Grid[j+1][i] == 1):
+                Surrounding_Living_Cells = Surrounding_Living_Cells + 1
+                
+            # Bottom Left
+            if (Current_Grid[j-1][i+1] == 1):
+                Surrounding_Living_Cells = Surrounding_Living_Cells + 1
+                                    
+            # Bottom Middle
+            if (Current_Grid[j][i+1] == 1):
+                Surrounding_Living_Cells = Surrounding_Living_Cells + 1
+                        
+            # Bottom Right
+            if (Current_Grid[j+1][i+1] == 1):
+                Surrounding_Living_Cells = Surrounding_Living_Cells + 1
+                        
+            # Cell Dies Of Underpopulation:
+            if Surrounding_Living_Cells < 2:
+                if Current_Grid[j][i] == 1:
+                    Future_Grid[j][i] = 0                      
+                if Current_Grid[j][i] == 0:
+                    Future_Grid[j][i] = 0   
+                    
+            # Cell Remains The Same:
+            if Surrounding_Living_Cells == 2:
+                if Current_Grid[j][i] == 1:
+                    Future_Grid[j][i] = 1                      
+                if Current_Grid[j][i] == 0:
+                    Future_Grid[j][i] = 0
+                    
+            # New Cell Is Born:
+            if Surrounding_Living_Cells == 3:
+                if Current_Grid[j][i] == 1:
+                    Future_Grid[j][i] = 1                      
+                if Current_Grid[j][i] == 0:
+                    Future_Grid[j][i] = 1    
+   
+            # Cell Dies From Overpopulation:
+            if Surrounding_Living_Cells > 3:
+                if Current_Grid[j][i] == 1:
+                    Future_Grid[j][i] = 0                      
+                if Current_Grid[j][i] == 0:
+                    Future_Grid[j][i] = 0
+           
+    # Update Current Grid:
+    Current_Grid = Future_Grid
+    
+    # Reset Future Grid:
+    Future_Grid = [[0 for i in range(Display_Width + 1)] for j in range(Display_Height + 1)]
