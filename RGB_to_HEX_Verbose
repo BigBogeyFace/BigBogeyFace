@@ -1,0 +1,173 @@
+
+// RGB_888_to_RGB_565_to_Hex_Verbose By BigBogeyFace:
+
+// Insert Your RGB_888 Values Here:
+int Red_RGB_888 = 255;
+int Green_RGB_888 = 255;
+int Blue_RGB_888 = 255;
+
+// RGB_565 Values:
+int Red_RGB_565 = 0;
+int Green_RGB_565 = 0;
+int Blue_RGB_565 = 0;
+
+// 16 Bit Binary Code Array:
+int Binary_565[16];
+
+// 4 Bit Binary Code Arrays:
+int Nibble_One[4];
+int Nibble_Two[4];
+int Nibble_Three[4];
+int Nibble_Four[4];
+
+// Initialise Counter:
+int Counter = 0;
+
+// Begin Void Setup:
+void setup() {
+
+  // Begin Serial Monitor:
+  Serial.begin(9600);
+  delay(5000);
+
+  // Convert RGB_888 Values to RGB_565 Values:
+  Red_RGB_565 = int((Red_RGB_888 / 8));
+  Green_RGB_565 = int((Green_RGB_888 / 4));
+  Blue_RGB_565 = int((Blue_RGB_888 / 8));
+
+  // Convert RGB_565 Values to Binary_565:
+  for (int i = 4; i >= 0; i--) {
+    Binary_565[4-i] = ((Red_RGB_565 & (1 << i)) ? 1 : 0);
+    }
+  for (int i = 5; i >= 0; i--) {
+    Binary_565[10-i] = ((Green_RGB_565 & (1 << i)) ? 1 : 0);
+    }
+  for (int i = 4; i >= 0; i--) {
+    Binary_565[15-i] = ((Blue_RGB_565 & (1 << i)) ? 1 : 0);
+    }
+
+  // Convert Binary_565 to Binary_Nibbles:
+  Counter = 0;
+  for (int i = 0; i < 4; i = i + 1){
+    Nibble_One[Counter] = int(Binary_565[i]);
+    Counter = Counter + 1;
+  }
+  Counter = 0;
+  for (int i = 4; i < 8; i = i + 1){
+    Nibble_Two[Counter] = int(Binary_565[i]);
+    Counter = Counter + 1;
+  }
+  Counter = 0;
+  for (int i = 8; i < 12; i = i + 1){
+    Nibble_Three[Counter] = int(Binary_565[i]);
+    Counter = Counter + 1;
+  }
+  Counter = 0;
+  for (int i = 12; i < 16; i = i + 1){
+    Nibble_Four[Counter] = int(Binary_565[i]);
+    Counter = Counter + 1;
+  }
+
+  // Convert Binary_Nibbles to Decimals:
+  int Decimal_Value_One = 0;
+  for (int i = 0; i < 4; i++) {
+    Decimal_Value_One = Decimal_Value_One * 2 + Nibble_One[i];
+  }
+  int Decimal_Value_Two = 0;
+  for (int i = 0; i < 4; i++) {
+    Decimal_Value_Two = Decimal_Value_Two * 2 + Nibble_Two[i];
+  }
+  int Decimal_Value_Three = 0;
+  for (int i = 0; i < 4; i++) {
+    Decimal_Value_Three = Decimal_Value_Three * 2 + Nibble_Three[i];
+  }
+  int Decimal_Value_Four = 0;
+  for (int i = 0; i < 4; i++) {
+    Decimal_Value_Four = Decimal_Value_Four * 2 + Nibble_Four[i];
+  }
+
+  // Print Title:
+  Serial.println();
+  Serial.println("RGB_888 to RGB_565 to 4_Character_Hexadecimal_Colour_Code");
+
+  // Print RGB_888 Values:
+  Serial.print("RGB_888 Values: (");
+  Serial.print(Red_RGB_888);
+  Serial.print(",");
+  Serial.print(Green_RGB_888);
+  Serial.print(",");
+  Serial.print(Blue_RGB_888);
+  Serial.println(")");
+
+  // Print RGB_565 Values:
+  Serial.print("RGB_565 Values: (");
+  Serial.print(Red_RGB_565);
+  Serial.print(",");
+  Serial.print(Green_RGB_565);
+  Serial.print(",");
+  Serial.print(Blue_RGB_565);
+  Serial.println(")");
+
+  // Print Binary_565:
+  Serial.print("Binary_565: ");
+  for (int i = 4; i >= 0; i--) {
+    Serial.print(Binary_565[4-i]);
+    }
+  Serial.print(" ");
+  for (int i = 5; i >= 0; i--) {
+    Serial.print(Binary_565[10-i]);
+    }
+  Serial.print(" ");
+  for (int i = 4; i >= 0; i--) {
+    Serial.print(Binary_565[15-i]);
+    }
+  Serial.println();
+
+  // Print Binary Nibbles:
+  Serial.print("Binary Nibbles: ");
+  Counter = 0;
+  for (int i = 0; i < 4; i = i + 1){
+    Serial.print(Nibble_One[Counter]);
+    Counter = Counter + 1;
+  }
+  Serial.print(" ");
+  Counter = 0;
+  for (int i = 4; i < 8; i = i + 1){
+    Serial.print(Nibble_Two[Counter]);
+    Counter = Counter + 1;
+  }
+  Serial.print(" ");
+  Counter = 0;
+  for (int i = 8; i < 12; i = i + 1){
+    Serial.print(Nibble_Three[Counter]);
+    Counter = Counter + 1;
+  }
+  Serial.print(" ");
+  Counter = 0;
+  for (int i = 12; i < 16; i = i + 1){
+    Serial.print(Nibble_Four[Counter]);
+    Counter = Counter + 1;
+  }
+  Serial.println(" ");
+
+  // Print Nibbles as Decimals:
+  Serial.print("Decimals: ");
+  Serial.print(Decimal_Value_One);
+  Serial.print(" ");
+  Serial.print(Decimal_Value_Two);
+  Serial.print(" ");
+  Serial.print(Decimal_Value_Three);
+  Serial.print(" ");
+  Serial.println(Decimal_Value_Four);
+
+  // Print Decimals as Hex Values:
+  Serial.print("Hex Code: 0x");
+  Serial.print(Decimal_Value_One, HEX);
+  Serial.print(Decimal_Value_Two, HEX);
+  Serial.print(Decimal_Value_Three, HEX);
+  Serial.println(Decimal_Value_Four, HEX);
+
+}
+
+void loop() {
+}
