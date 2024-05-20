@@ -1,0 +1,87 @@
+# Upper Body Detection By Big Bogey Face
+
+# Import Essentials:
+import cv2
+import time
+
+# Define Frame Dimension Perameters:
+Frame_Width=1020
+Frame_Height=int(Frame_Width/16*9)
+
+# Define Font Variables (For Fps Display):
+Font_Size=.6
+Font_Thickness=1
+
+# Define Frame Border Sizes:
+Border_Size=3
+
+# Define Colour Variables:
+White=(255,255,255)
+Blue=(255,0,0)
+Cyan=(255,255,0)
+Green=(0,255,0)
+Red=(0,0,255)
+Black=(0,0,0)
+
+# Setup Camera:
+cam=cv2.VideoCapture(0,cv2.CAP_DSHOW)
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, Frame_Width)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, Frame_Height)
+cam.set(cv2.CAP_PROP_FPS, 30)
+cam.set(cv2.CAP_PROP_FOURCC,cv2.VideoWriter_fourcc(*'MJPG'))
+
+# Open Haar Cascade Models From Local Folder:
+Upper_Body_Cascade=cv2.CascadeClassifier('Haar\haarcascade_upperbody.xml')
+
+# Initialise Frames Per Second Timer:
+Time_Last=time.time()
+Fps_Filtered=30
+time.sleep(.1)
+
+# Begin Program Loop:
+while True:
+
+    # Begin Frames Per Second Timer:
+    Delay_Time=time.time()-Time_Last
+    Time_Last=time.time()
+    Fps=1/Delay_Time
+
+    # Low Pass Filter (For Fps Timer):
+    Fps_Filtered=Fps_Filtered*.97+Fps*.03
+
+    # Get Frame:
+    ignore,Frame=cam.read()
+    cv2.rectangle(Frame,(0,0),(Frame_Width,Frame_Height),(White),Border_Size)
+
+    # Invert Frame Horizontally:
+    Frame=cv2.flip(Frame,1)
+
+    # Generate Gray Frame:
+    Frame_Gray=cv2.cvtColor(Frame,cv2.COLOR_BGR2GRAY)
+
+    # Detect Features Declared By Cascade Models:
+    Upper_Bodies=Upper_Body_Cascade.detectMultiScale(Frame_Gray,1.3,5)
+
+    # Detect Bodies:
+    for Upper_Body in Upper_Bodies:
+        Upper_Body_X,Upper_Body_Y,Upper_Body_Width,Upper_Body_Height=Upper_Body
+        cv2.rectangle(Frame,(Upper_Body_X,Upper_Body_Y),(Upper_Body_X+Upper_Body_Width,Upper_Body_Y+Upper_Body_Height),(Cyan),Border_Size)
+        cv2.rectangle(Frame,(Upper_Body_X-Border_Size,Upper_Body_Y-40),(Upper_Body_X+Upper_Body_Width+Border_Size,Upper_Body_Y),(Cyan),-1)
+        cv2.putText(Frame,"Upper Body",(Upper_Body_X+10,Upper_Body_Y-10),cv2.FONT_HERSHEY_COMPLEX,Font_Size+.2,(Black),Font_Thickness+1)
+
+    # Display Frames Per Second Data:
+    cv2.rectangle(Frame,(30,30),(165,60),(Black),-1)
+    cv2.putText(Frame,'Frame Rate:',(35,50,),cv2.FONT_HERSHEY_COMPLEX,Font_Size,(White),Font_Thickness)
+
+    # Display Frames Per Second Data:
+    cv2.rectangle(Frame,(30,90),(110,120),(Black),-1)
+    cv2.putText(Frame,str(int(Fps_Filtered))+' FPS',(35,110,),cv2.FONT_HERSHEY_COMPLEX,Font_Size,(White),Font_Thickness)
+   
+    # Show frame:
+    cv2.imshow('1',Frame)
+    cv2.moveWindow('1',0,0)
+
+    # Check For "Q" To Quit:
+    if cv2.waitKey(1) & 0xff == ord('q'):
+        break
+cam.release()
