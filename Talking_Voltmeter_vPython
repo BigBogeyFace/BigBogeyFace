@@ -1,0 +1,98 @@
+
+# Talking VoltMeter Graphic By BigBogeyFace:
+
+# Import Essentials:
+from vpython import *
+import numpy
+import serial
+import time
+
+# vPython Canvas Definition:
+My_Canvas=canvas(width=1264,height=630,background=color.black)
+
+# Global Perameters:
+Plate_Width=2
+Plate_Height=5
+Plate_Length=8
+
+# Voltmeter Appearance:
+Plate=box(pos=vector(0,Plate_Height*.3,0),length=Plate_Length,
+      height=Plate_Height,width=Plate_Width,color=color.white)
+BackPlate=box(pos=vector(0,Plate_Height*.3,-Plate_Width*.6),length=Plate_Length,
+          height=Plate_Height,width=Plate_Width*.2,color=color.white)
+Plate=box(pos=vector(0,-Plate_Height*.2,-Plate_Width*.1),length=Plate_Length*1.1,
+      height=Plate_Height*.2,width=Plate_Width*1.6,texture=textures.wood)
+Text=text(text='Voltmeter',align='center',pos=vector(0,Plate_Height*.2,0),
+     height=Plate_Height*.1,depth=Plate_Width*.51,color=color.black,shininess=0)
+Voltage_Indicator_Shaft=cylinder(pos=vector(0,0,0),axis=vector(0,0,1),radius=Plate_Width*.05,
+                        length=Plate_Length*.165,color=color.black,shininess=0)
+
+# Major Tick Mark Perameters:
+Major_Tick_Length=Plate_Length*.04
+Major_Tick_Height=Plate_Height*.01
+Major_Tick_Width=Plate_Width*1.02
+Major_Tick_Thickness=2*numpy.pi*Plate_Length/400
+
+# Minor Tick Mark Perameters:
+Minor_Tick_Length=Plate_Length*.02
+Minor_Tick_Height=Plate_Height*.01
+Minor_Tick_Width=Plate_Width*1.02
+Minor_Tick_Thickness=2*numpy.pi*Plate_Length/600
+
+# Generate Major Tick Marks:
+for theta in numpy.linspace(0,1*numpy.pi,11):
+    Major_Tick=box(axis=vector(Plate_Length*numpy.cos(theta),Plate_Length*numpy.sin(theta),0),
+    color=color.black,shininess=0,length=Major_Tick_Length,width=Major_Tick_Width,height=Major_Tick_Height,
+    pos=vector((Plate_Length*.38)*numpy.cos(theta),(Plate_Length*.38)*numpy.sin(theta),0))
+
+# Generate Minor Tick Marks:
+for theta in numpy.linspace(0,1*numpy.pi,101):
+    Minor_Tick=box(axis=vector(Plate_Length*numpy.cos(theta),Plate_Length*numpy.sin(theta),0),
+    color=color.black,shininess=0,length=Minor_Tick_Length,width=Minor_Tick_Width,height=Minor_Tick_Height,
+    pos=vector((Plate_Length*.37)*numpy.cos(theta),(Plate_Length*.37)*numpy.sin(theta),0))
+
+# Generate Annotation:
+Angle=numpy.pi/.835
+Angle_Increment=-numpy.pi/10
+Angle=Angle+Angle_Increment
+Number_Height=Plate_Height*.06
+for i in range(-1,11,1):
+    Clock_Number=text(align='center',text=str(i),
+    pos=vector((Plate_Height*.72)*numpy.cos(Angle),(Plate_Height*.72)*numpy.sin(Angle)-Number_Height/2,0),
+    height=Number_Height,depth=Plate_Width*.51,color=color.black,shininess=0)
+    Angle=Angle+Angle_Increment
+
+# Voltage Indicator:
+Voltage_Indicator=arrow(pos=vector(0,0,Plate_Width*.58),axis=vector(0,0,0),shaftwidth=Plate_Width*.05,
+                  length=Plate_Length*.34,headwidth=Plate_Width*.05,headlength=Plate_Width*.05,
+                  color=color.red,shininess=0)
+
+# Voltage Indicator Start Angle:
+Indicator_Start_Angle=numpy.pi/1
+
+# Serial Port Object:
+Arduino_Data=serial.Serial('com8',115200)
+
+# Courtesy Delay:
+time.sleep(1)
+
+# Begin Program Loop:
+while True:
+
+    # Wait For Arduino Data:
+    while(Arduino_Data.inWaiting()==0):
+        pass
+
+    # Collect Arduino Data:
+    Data_Packet = Arduino_Data.readline()
+
+    # Format Data:
+    Data_Packet=str(Data_Packet,'utf-8')
+    Data_Packet=Data_Packet.strip('\r\n')
+    Voltage=int(Data_Packet)
+
+    # Move Voltage Indicator:
+    Voltage_Indicator_Angle=-(Voltage/1023)*numpy.pi+Indicator_Start_Angle
+    Voltage_Indicator.axis=vector((Plate_Length*.34)*numpy.cos(Voltage_Indicator_Angle),
+                           (Plate_Length*.34)*numpy.sin(Voltage_Indicator_Angle),0)
+        
