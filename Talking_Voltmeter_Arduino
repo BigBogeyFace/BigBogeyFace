@@ -1,0 +1,115 @@
+
+// Talking VoltMeter By BigBogeyFace:
+
+// Import Libraries:
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include "Talkie.h"
+#include "Vocab_US_Large.h"
+Talkie voice;
+
+// Setup OLED Display:
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 32
+#define OLED_RESET 4
+#define SCREEN_ADDRESS 0x3C
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+// Declare Globals:
+const int Input_Pin = A1;
+int Input_Pin_Value = 0;
+float Pin_Voltage = 0;
+float Measured_voltage = 0;
+float Reference_Voltage = 5;
+float Resistor_One = 30000; // 30K Ohm
+float Resistor_Two = 7500; // 7.5K Ohm
+int Data = 1;
+int ASCII_Number = 1;
+String String_Voltage;
+int String_Length;
+
+// Setup:
+void setup() {
+Serial.begin(115200);
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;);
+  }
+  pinMode(Input_Pin,INPUT);
+  delay(5000);
+}
+
+// Begin Program Loop:
+void loop() {
+
+// Get Input Pin Value:
+Input_Pin_Value = analogRead(Input_Pin);
+
+// Calculate Voltage:
+Pin_Voltage = (Input_Pin_Value * Reference_Voltage) / 1024;
+Measured_voltage = Pin_Voltage / (Resistor_Two/(Resistor_One+Resistor_Two));
+
+// OLED Display:
+display.setTextSize(4);
+display.setTextColor(SSD1306_WHITE);
+display.setCursor(0,0);
+display.print(Measured_voltage);
+display.print(F("v"));
+display.display();
+
+// Send Data To Serial Port:
+Data = Measured_voltage * 102.3;
+Serial.println(Data);
+
+// Speak:
+String_Voltage = Measured_voltage;
+String_Length = String_Voltage.length();
+ASCII_Number = (String_Voltage[0]);
+Talk();
+voice.say(sp3_POINT);
+ASCII_Number = (String_Voltage[2]);
+Talk();
+ASCII_Number = (String_Voltage[3]);
+Talk();
+voice.say(sp2_VOLTS);
+
+// Clear Display:
+display.clearDisplay();
+}
+
+// Talk Function:
+void Talk(){
+  if (ASCII_Number == 48){
+  voice.say(sp3_ZERO);
+}  
+  if (ASCII_Number == 49){
+  voice.say(sp3_ONE);
+}
+  if (ASCII_Number == 50){
+  voice.say(sp3_TWO);
+}  
+  if (ASCII_Number == 51){
+  voice.say(sp3_THREE);
+}
+  if (ASCII_Number == 52){
+  voice.say(sp3_FOUR);
+}  
+  if (ASCII_Number == 53){
+  voice.say(sp3_FIVE);
+}
+  if (ASCII_Number == 54){
+  voice.say(sp3_SIX);
+}  
+  if (ASCII_Number == 55){
+  voice.say(sp3_SEVEN);
+}
+  if (ASCII_Number == 56){
+  voice.say(sp3_EIGHT);
+}  
+  if (ASCII_Number == 57){
+  voice.say(sp3_NINE);
+}
+
+}
