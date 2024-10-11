@@ -1,0 +1,137 @@
+
+// Real Time Clock Fixed Display By BigBogeyFace:
+
+// Include Libraries:
+#include "Arduino_LED_Matrix.h"
+#include "RTC.h"
+
+// Generate Matrix Object:
+ArduinoLEDMatrix Matrix;
+
+// Global Variable:
+int Minutes = 0;
+int Minute_Units = 0;
+int Minute_Tens = 0;
+int Hours = 0;
+int Hour_Units = 0;
+int Hour_Tens = 0;
+int One_Second_Delay = 1000;
+bool Second_Indicator_State = 0;
+
+// Initialise LED Matrix:
+byte Frame[8][12] = {  // [Row][Column]
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+};
+
+// Define All Numbers:
+byte Numbers[10][3][5] = { { { 1, 1, 1, 1, 1 },  // Zero
+                             { 1, 0, 0, 0, 1 },
+                             { 1, 1, 1, 1, 1 } },
+
+                           { { 0, 0, 0, 0, 0 },  // One
+                             { 1, 1, 1, 1, 1 },
+                             { 0, 0, 0, 0, 0 } },
+
+                           { { 1, 1, 1, 0, 1 },  // Two
+                             { 1, 0, 1, 0, 1 },
+                             { 1, 0, 1, 1, 1 } },
+
+                           { { 1, 0, 0, 0, 1 },  // Three
+                             { 1, 0, 1, 0, 1 },
+                             { 1, 1, 1, 1, 1 } },
+
+                           { { 0, 0, 1, 1, 1 },  // Four
+                             { 0, 0, 1, 0, 0 },
+                             { 1, 1, 1, 1, 1 } },
+
+                           { { 1, 0, 1, 1, 1 },  // Five
+                             { 1, 0, 1, 0, 1 },
+                             { 1, 1, 1, 0, 1 } },
+
+                           { { 1, 1, 1, 1, 1 },  // Six
+                             { 1, 0, 1, 0, 1 },
+                             { 1, 1, 1, 0, 1 } },
+
+                           { { 0, 0, 0, 0, 1 },  // Seven
+                             { 0, 0, 0, 0, 1 },
+                             { 1, 1, 1, 1, 1 } },
+
+                           { { 1, 1, 1, 1, 1 },  // Eight
+                             { 1, 0, 1, 0, 1 },
+                             { 1, 1, 1, 1, 1 } },
+
+                           { { 0, 0, 1, 1, 1 },  // Nine
+                             { 0, 0, 1, 0, 1 },
+                             { 1, 1, 1, 1, 1 } } };
+
+// Begin Setup:
+void setup() {
+
+  // Begin Objects:
+  Matrix.begin();
+  RTC.begin();
+  Serial.begin(9600);
+
+  // Set Up Real Time Clock Time:
+  RTCTime startTime(4, Month::MARCH, 2024, 1, 35, 0,
+                    DayOfWeek::SUNDAY,
+                    SaveLight::SAVING_TIME_ACTIVE);
+
+  // Begin Clock:
+  RTC.setTime(startTime);
+
+}
+
+// Begin Program Loop:
+void loop() {
+
+  // Update Real Time Clock Time:
+  RTCTime Current_Time;
+
+  // Get Current Time:
+  RTC.getTime(Current_Time);
+
+  // Collect Hour and Minute Data:
+  Hours = int(Current_Time.getHour());
+  Minutes = int(Current_Time.getMinutes());
+
+  // Convert Hours from 24 to 12:
+  if (Hours > 12){
+    Hours = Hours - 12;
+  }
+
+  // Extract Tens and Units:
+  Hour_Tens = (Hours / 10) % 10;
+  Hour_Units = Hours % 10;
+  Minute_Tens = (Minutes / 10) % 10;
+  Minute_Units = Minutes % 10;
+
+  // Update Frame with Numbers:
+  for (int i = 0; i < 5; i = i + 1) {
+    for (int j = 0; j < 3; j = j + 1) {
+      Frame[j][i+7] = Numbers[Hour_Tens][j][i];
+      Frame[j+4][i+7] = Numbers[Hour_Units][j][i];
+      Frame[j][i+1] = Numbers[Minute_Tens][j][i];
+      Frame[j+4][i+1] = Numbers[Minute_Units][j][i];
+    }
+  }
+
+  // Alternate Second Indicator State:
+  Frame[7][8] = Second_Indicator_State;
+  Frame[7][10] = Second_Indicator_State;
+  Second_Indicator_State = !Second_Indicator_State;
+
+  // Render Frame:
+  Matrix.renderBitmap(Frame, 8, 12);
+
+  // Wait a Second:
+  delay(One_Second_Delay);
+}
+
