@@ -1,0 +1,29 @@
+
+# Import Dependencies:
+import time
+from machine import Pin, I2C
+from sh1107 import SH1107
+
+# Setup Display Pins:
+i2c = I2C(0, scl=Pin(21), sda=Pin(20), freq=400000)
+
+# Instantiate Display:
+oled = SH1107(128, 128, i2c)
+
+# Decorate Display:
+oled.fill(0)
+oled.text("                ", 0, 0)
+oled.text("       40       ", 0, 12)
+oled.text("   180    240   ", 0, 24)
+oled.text("120          270", 0, 36)
+oled.text("150           80", 0, 48)
+oled.text("90           160", 0, 60)
+oled.text("180          120", 0, 72)
+oled.text("                ", 0, 84)
+oled.text("                ", 0, 96)
+oled.text("    Current:    ", 0, 108)
+oled.text("      2.8       ", 0, 120)
+oled.show()
+
+
+
