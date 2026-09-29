@@ -1,0 +1,25 @@
+# Import Dependencies:
+import time
+from plasma import WS2812
+from servo import servo2040
+
+# Rainbow Fall Global Variables:
+SPEED = 20
+BRIGHTNESS = 0.2
+UPDATES = 50
+
+# Rainbow Fall Instantiation:
+led_bar = WS2812(servo2040.NUM_LEDS, 1, 0, servo2040.LED_DATA)
+led_bar.start()
+offset = 0.0
+
+# Rainbow Fall:
+while True:
+    offset += SPEED / 1000.0
+    for i in range(servo2040.NUM_LEDS):
+        hue = float(i) / servo2040.NUM_LEDS
+        led_bar.set_hsv(i, hue + offset, 1.0, BRIGHTNESS)
+    time.sleep(1.0 / UPDATES)
+    
+
+
