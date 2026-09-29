@@ -1,0 +1,230 @@
+
+// LED Matrix Display Image:
+
+// Import Essentials:
+#include "ArduinoGraphics.h"
+#include <Arduino_LED_Matrix.h>
+#include <ArduinoBLE.h>
+
+// Setup Bluetooth:
+BLEService uartService("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
+BLECharacteristic rxChar("6E400002-B5A3-F393-E0A9-E50E24DCCA9E", BLEWrite, 512);
+BLECharacteristic txChar("6E400003-B5A3-F393-E0A9-E50E24DCCA9E", BLENotify, 512);
+
+// Declare Matrix Object:
+ArduinoLEDMatrix matrix;
+
+// Small Heart BitMap:
+uint8_t Small_Heart[][12] = {
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0 },
+  { 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+};
+
+// Large Heart BitMap:
+uint8_t Large_Heart[][12] = {
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0 },
+  { 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 },
+  { 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 },
+  { 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }
+};
+
+// Bluetooth Connected BitMap:
+uint8_t Command_Unrecognised[][12] = {
+  { 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1 },
+  { 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0 },
+  { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0 },
+  { 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0 },
+  { 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0 },
+  { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0 },
+  { 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0 },
+  { 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1 }
+};
+
+// Bluetooth Connected BitMap:
+uint8_t Bluetooth_Connected[][12] = {
+  { 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0 },
+  { 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0 },
+  { 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
+  { 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0 },
+  { 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 },
+  { 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0 }
+};
+
+String Command_List[] = { "TEST", "CRUSH" };
+
+// Check BLE:
+void Check_BLE() {
+  BLEDevice central = BLE.central();
+
+  if (central) {
+    while (central.connected()) {
+      matrix.renderBitmap(Bluetooth_Connected, 12, 8);
+
+      // Check BLE for Data:
+      if (rxChar.written()) {
+        int len = rxChar.valueLength();
+        uint8_t buf[512];
+        rxChar.readValue(buf, len);
+
+        // Collect Command:
+        String Command = "";
+        for (int i = 0; i < len; i++) Command += (char)buf[i];
+        Command.trim();
+
+        // Flash Onboard LED:
+        for (int j = 0; j < 4; j = j + 1) {
+          digitalWrite(LED_BUILTIN, LOW);
+          delay(100);
+          digitalWrite(LED_BUILTIN, HIGH);
+          delay(100);
+        }
+
+        // Check Command Validity:
+        bool Valid_Command = false;
+        int numCommands = sizeof(Command_List) / sizeof(Command_List[0]);
+        for (int i = 0; i < numCommands; i = i + 1) {
+          if (Command == Command_List[i]) {
+            Valid_Command = true;
+            break;
+          }
+        }
+        if (Valid_Command == false) {
+          matrix.renderBitmap(Command_Unrecognised, 12, 8);
+          delay(1000);
+          return;
+        }
+
+        // TEST Command:
+        if (Command == "TEST") {
+
+          delay(10000);
+
+          // Render Matrix:
+          matrix.clear();
+          delay(10);
+          matrix.beginDraw();
+          matrix.textFont(Font_4x6);
+          matrix.beginText(2, 2, 1);  // (X, Y, State)
+          matrix.println("T");
+          matrix.endText();
+          matrix.endDraw();
+
+          // Send S_Code      Right Leg            Waist  Left Leg              Right Arm                 Neck     Left Arm
+          for (int i = 0; i < 3; i = i + 1) {
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  90,135,135,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  180,135,135,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+          }
+          for (int i = 0; i < 4; i = i + 1) {
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  135,135,90,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  135,135,150,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+          }          
+          for (int i = 0; i < 4; i = i + 1) {
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  90,135,90,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  135,135,150,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  180,135,90,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  135,135,150,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+          
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  135,135,90,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  180,135,150,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  135,135,90,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+            Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  90,135,150,135,135,135,  135,135,  135,135,135,135,135,135");
+            delay(300);
+          }
+          Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  135,135,135,135,135,135,  135,135,  135,135,135,135,135,135");
+          delay(1000);
+        }
+
+
+        // CRUSH Command:
+        if (Command == "CRUSH") {
+
+          delay(10000);
+
+          // Render Matrix:
+          matrix.clear();
+          delay(10);
+          matrix.beginDraw();
+          matrix.textFont(Font_4x6);
+          matrix.beginText(2, 2, 1);  // (X, Y, State)
+          matrix.println("C");
+          matrix.endText();
+          matrix.endDraw();
+
+          // Send S_Code      Right Leg            Waist  Left Leg              Right Arm                 Neck      Left Arm
+          Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  110,135,135,135,135,135,  135,135,  135,135,135,135,135,135");
+          delay(2000);
+          Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  180,135,135,135,135,135,  135,135,  135,135,135,135,135,135");
+          delay(1000);
+          Serial1.println("S, 135,135,135,135,135, 135,   135,135,135,135,135,  135,135,135,135,135,135,  135,135,  135,135,135,135,135,135");
+          delay(3000);
+        }
+      }
+    }
+  }
+}
+
+// Setup:
+void setup() {
+
+  // Built in LED PinMode:
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+
+  // Instantiate Matrix:
+  matrix.begin();
+
+  // Initialize hardware serial port 1 at 115200 baud:
+  Serial1.begin(115200);
+
+  // Instantiate Bluetooth:
+  BLE.begin();
+  BLE.setLocalName("UNO_R4_UART");
+  BLE.setAdvertisedService(uartService);
+  uartService.addCharacteristic(rxChar);
+  uartService.addCharacteristic(txChar);
+  BLE.addService(uartService);
+  BLE.advertise();
+}
+
+// Program Loop:
+void loop() {
+
+  // Render Bitmap Image:
+  for (int i = 0; i < 10; i = i + 1) {
+    Check_BLE();
+    matrix.renderBitmap(Small_Heart, 12, 8);
+    delay(100);
+  }
+
+  for (int i = 0; i < 2; i = i + 1) {
+    Check_BLE();
+    matrix.renderBitmap(Large_Heart, 12, 8);
+    delay(100);
+    Check_BLE();
+    matrix.renderBitmap(Small_Heart, 12, 8);
+    delay(100);
+  }
+}
