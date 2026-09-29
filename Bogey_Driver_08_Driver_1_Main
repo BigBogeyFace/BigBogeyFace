@@ -1,0 +1,254 @@
+
+# Import Dependencies:
+import time
+from plasma import WS2812
+from pimoroni import Analog, AnalogMux
+from servo import Servo, servo2040
+from machine import Pin, I2C, UART
+from sh1107 import SH1107
+##########################################################################################################################
+
+# Rainbow Fall Global Variables:
+SPEED = 20
+BRIGHTNESS = 0.2
+UPDATES = 50
+
+# Rainbow Fall Instantiation:
+led_bar = WS2812(servo2040.NUM_LEDS, 1, 0, servo2040.LED_DATA)
+led_bar.start()
+offset = 0.0
+
+###########################################################################################################################
+
+# Setup Display Pins:
+i2c = I2C(0, scl=Pin(21), sda=Pin(20), freq=400000)
+
+# Instantiate Display:
+oled = SH1107(128, 128, i2c)
+
+# Decorate Display:
+oled.fill(0)
+oled.text("Servo Driver One", 0, 0)
+oled.text("----------------", 0, 12)
+oled.text("                ", 0, 24)
+oled.text("                ", 0, 36)
+oled.text("     Please     ", 0, 48)
+oled.text("                ", 0, 60)
+oled.text("      Wait      ", 0, 72)
+oled.text("                ", 0, 84)
+oled.text("                ", 0, 96)
+oled.text("                ", 0, 108)
+oled.text("                ", 0, 120)
+oled.show()
+
+# Wait:
+time.sleep(2)
+
+##########################################################################################################################
+
+# Rainbow Fall Three Times:
+for j in range (160):
+    offset += SPEED / 1000.0
+    for i in range(servo2040.NUM_LEDS):
+        hue = float(i) / servo2040.NUM_LEDS
+        led_bar.set_hsv(i, hue + offset, 1.0, BRIGHTNESS)
+    time.sleep(1.0 / UPDATES)
+    
+###########################################################################################################################
+    
+# Setup multiplexer and current sensor
+mux = AnalogMux(servo2040.ADC_ADDR_0, servo2040.ADC_ADDR_1, servo2040.ADC_ADDR_2)
+cur_adc = Analog(
+    servo2040.SHARED_ADC,
+    servo2040.CURRENT_GAIN,
+    servo2040.SHUNT_RESISTOR,
+    servo2040.CURRENT_OFFSET,
+)
+
+# Select current sensor address
+mux.select(servo2040.CURRENT_SENSE_ADDR)
+
+##########################################################################################################################
+
+# Setup Servos:
+servo_1 = Servo(servo2040.SERVO_3)
+servo_2 = Servo(servo2040.SERVO_4)
+servo_3 = Servo(servo2040.SERVO_5)
+servo_4 = Servo(servo2040.SERVO_6)
+servo_5 = Servo(servo2040.SERVO_7)
+servo_6 = Servo(servo2040.SERVO_8)
+servo_7 = Servo(servo2040.SERVO_9)
+servo_8 = Servo(servo2040.SERVO_10)
+servo_9 = Servo(servo2040.SERVO_11)
+servo_10 = Servo(servo2040.SERVO_12)
+servo_11 = Servo(servo2040.SERVO_13)
+
+# Setup Pulse Thresholds:
+MIN_PULSE = 550
+MAX_PULSE = 2560
+
+# Set Angle Function:
+def set_angle(servo, angle):
+    pulse_us = int(MIN_PULSE + (angle / 270) * (MAX_PULSE - MIN_PULSE))
+    servo.pulse(pulse_us)
+
+# Declare Initial Servo Angles:
+Servo_One_Angle = 135
+Servo_Two_Angle = 135
+Servo_Three_Angle = 135
+Servo_Four_Angle = 135
+Servo_Five_Angle = 135
+Servo_Six_Angle = 135
+Servo_Seven_Angle = 135
+Servo_Eight_Angle = 135
+Servo_Nine_Angle = 135
+Servo_Ten_Angle = 135
+Servo_Eleven_Angle = 135
+
+# Decorate Display:
+oled.fill(0)
+oled.text("                ", 0, 0)
+oled.text("                ", 0, 12)
+oled.text(f"{Servo_Six_Angle}", 52, 24)
+oled.text(f"{Servo_Five_Angle}", 24, 36)
+oled.text(f"{Servo_Seven_Angle}", 80, 36)
+oled.text(f"{Servo_Four_Angle}", 0, 48)
+oled.text(f"{Servo_Eight_Angle}", 104, 48)
+oled.text(f"{Servo_Three_Angle}", 0, 60)
+oled.text(f"{Servo_Nine_Angle}", 104, 60)
+oled.text(f"{Servo_Two_Angle}", 0, 72)
+oled.text(f"{Servo_Ten_Angle}", 104, 72)
+oled.text(f"{Servo_One_Angle}", 0, 84)
+oled.text(f"{Servo_Eleven_Angle}", 104, 84)
+oled.text("                ", 0, 96)
+oled.text(" Total Current: ", 0, 108)
+oled.text("                ", 0, 120)
+oled.show()
+
+# Enable and Set Servos:
+servo_1.enable()
+set_angle(servo_1, Servo_One_Angle)
+servo_2.enable()
+set_angle(servo_2, Servo_Two_Angle)
+servo_3.enable()
+set_angle(servo_3, Servo_Three_Angle)
+servo_4.enable()
+set_angle(servo_4, Servo_Four_Angle)
+servo_5.enable()
+set_angle(servo_5, Servo_Five_Angle)
+servo_6.enable()
+set_angle(servo_6, Servo_Six_Angle)
+servo_7.enable()
+set_angle(servo_7, Servo_Seven_Angle)
+servo_8.enable()
+set_angle(servo_8, Servo_Eight_Angle)
+servo_9.enable()
+set_angle(servo_9, Servo_Nine_Angle)
+servo_10.enable()
+set_angle(servo_10, Servo_Ten_Angle)
+servo_11.enable()
+set_angle(servo_11, Servo_Eleven_Angle)
+
+# Collect Current:
+current = cur_adc.read_current()
+
+# Update Current Reading:
+current = cur_adc.read_current()
+oled.fill_rect(0, 120, 128, 8, 0)
+oled.text(f"{current:.2f}", 48, 120)
+oled.show()
+
+# Wait:
+time.sleep(3)
+
+############################################################################################################################
+
+# Initialise UART:
+uart = machine.UART(0, baudrate=115200, tx=machine.Pin(0), rx=machine.Pin(1))
+
+# Define Buffer:
+buffer = ""
+
+# Begin Program Loop:
+while True:
+
+    # Drop Rainbow:
+    offset += SPEED / 1000.0
+    for i in range(servo2040.NUM_LEDS):
+        hue = float(i) / servo2040.NUM_LEDS
+        led_bar.set_hsv(i, hue + offset, 1.0, BRIGHTNESS)
+    time.sleep(1.0 / UPDATES)
+
+    # Check for UART Input:
+    if uart.any():
+        data = uart.read().decode("utf-8")
+        buffer += data
+
+        # Format Data:
+        if "\n" in buffer:
+            line, buffer = buffer.split("\n", 1)
+            line = line.strip()
+
+            # Unpack Data:
+            try:
+                parts = line.split(",")
+                if len(parts) == 26:
+                    Servo_One_Angle = int(parts[1])
+                    Servo_Two_Angle = int(parts[2])
+                    Servo_Three_Angle = int(parts[3])
+                    Servo_Four_Angle = int(parts[4])
+                    Servo_Five_Angle = int(parts[5])
+                    Servo_Six_Angle = int(parts[6])
+                    Servo_Seven_Angle = int(parts[7])
+                    Servo_Eight_Angle = int(parts[8])
+                    Servo_Nine_Angle = int(parts[9])
+                    Servo_Ten_Angle = int(parts[10])
+                    Servo_Eleven_Angle = int(parts[11])
+
+                    # Decorate Display:
+                    oled.fill(0)
+                    oled.text("                ", 0, 0)
+                    oled.text("                ", 0, 12)
+                    oled.text(f"{Servo_Six_Angle}", 52, 24)
+                    oled.text(f"{Servo_Five_Angle}", 24, 36)
+                    oled.text(f"{Servo_Seven_Angle}", 80, 36)
+                    oled.text(f"{Servo_Four_Angle}", 0, 48)
+                    oled.text(f"{Servo_Eight_Angle}", 104, 48)
+                    oled.text(f"{Servo_Three_Angle}", 0, 60)
+                    oled.text(f"{Servo_Nine_Angle}", 104, 60)
+                    oled.text(f"{Servo_Two_Angle}", 0, 72)
+                    oled.text(f"{Servo_Ten_Angle}", 104, 72)
+                    oled.text(f"{Servo_One_Angle}", 0, 84)
+                    oled.text(f"{Servo_Eleven_Angle}", 104, 84)
+                    oled.text("                ", 0, 96)
+                    oled.text(" Total Current: ", 0, 108)
+                    oled.text("                ", 0, 120)
+                    oled.show()
+
+                    # Set Servos:
+                    set_angle(servo_1, Servo_One_Angle)
+                    set_angle(servo_2, Servo_Two_Angle)
+                    set_angle(servo_3, Servo_Three_Angle)
+                    set_angle(servo_4, Servo_Four_Angle)
+                    set_angle(servo_5, Servo_Five_Angle)
+                    set_angle(servo_6, Servo_Six_Angle)
+                    set_angle(servo_7, Servo_Seven_Angle)
+                    set_angle(servo_8, Servo_Eight_Angle)
+                    set_angle(servo_9, Servo_Nine_Angle)
+                    set_angle(servo_10, Servo_Ten_Angle)
+                    set_angle(servo_11, Servo_Eleven_Angle)
+
+                    # Update Current Reading:
+                    current = cur_adc.read_current()
+                    oled.fill_rect(0, 120, 128, 8, 0)
+                    oled.text(f"{current:.2f}", 48, 120)
+                    oled.show()
+
+            except ValueError:
+                pass
+
+    time.sleep(0.01)
+    
+
+
+
