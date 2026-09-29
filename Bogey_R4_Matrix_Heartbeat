@@ -1,0 +1,57 @@
+
+// LED Matrix Heart Beat:
+
+// Import Essentials:
+#include <Arduino_LED_Matrix.h>
+
+// Declare Matrix Object:
+ArduinoLEDMatrix matrix;
+
+// Define Image Bitmap:
+uint8_t Small_Heart[][12] = {
+  {0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,1,0,1,0,0,0,0,0},
+  {0,0,0,1,1,1,1,1,0,0,0,0},
+  {0,0,0,1,1,1,1,1,0,0,0,0},
+  {0,0,0,0,1,1,1,0,0,0,0,0},
+  {0,0,0,0,0,1,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0}
+};
+
+// Define Image Bitmap:
+uint8_t Large_Heart[][12] = {
+  {0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,1,1,0,1,1,0,0,0,0},
+  {0,0,1,1,1,1,1,1,1,0,0,0},
+  {0,0,1,1,1,1,1,1,1,0,0,0},
+  {0,0,0,1,1,1,1,1,0,0,0,0},
+  {0,0,0,0,1,1,1,0,0,0,0,0},
+  {0,0,0,0,0,1,0,0,0,0,0,0}
+};
+
+// Setup:
+void setup() {
+
+  // Instantiate LED Matrix:
+  matrix.begin();
+
+}
+
+// Program Loop:
+void loop() {
+
+  // Render Bitmap Image:
+  matrix.renderBitmap(Small_Heart, 12, 8);
+  delay(1000);
+
+  // Beat Heart:
+  for (int i = 0; i < 2; i = i + 1){
+  matrix.renderBitmap(Large_Heart, 12, 8);
+  delay(100);
+  matrix.renderBitmap(Small_Heart, 12, 8);
+  delay(100);
+  }
+
+}
