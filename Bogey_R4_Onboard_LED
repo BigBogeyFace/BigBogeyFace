@@ -1,0 +1,26 @@
+
+// Onboard LED Control:
+
+// Program Setup:
+void setup() {
+
+  // Setup Onboard LED Pin Mode:
+  pinMode(LED_BUILTIN, OUTPUT);
+
+}
+
+// Program Loop:
+void loop() {
+
+  // Onboard LED On:
+  digitalWrite(LED_BUILTIN, HIGH);
+
+  // Wait:
+  delay(300);
+
+  // Onboard LED On:
+  digitalWrite(LED_BUILTIN, LOW);
+
+  // Wait:
+  delay(300);
+}
