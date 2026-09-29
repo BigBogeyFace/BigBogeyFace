@@ -1,0 +1,27 @@
+// LED Matrix Display Image:
+
+// Import Essentials:
+#include <Arduino_LED_Matrix.h>
+// Declare Matrix Object:
+ArduinoLEDMatrix matrix;
+// Define Image Bitmap:
+uint8_t Face[][12] = {
+  { 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0 },
+  { 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0 },
+  { 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1 },
+  { 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0 },
+  { 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 },
+  { 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0 }
+};
+// Setup:
+void setup() {
+  // Instantiate LED Matrix:
+  matrix.begin();
+  // Render Bitmap Image:
+  matrix.renderBitmap(Face, 12, 8);
+}
+// Program Loop:
+void loop() {
+}
