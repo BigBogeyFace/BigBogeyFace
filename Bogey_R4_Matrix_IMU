@@ -1,0 +1,103 @@
+
+// LED Matrix Display Image:
+
+// Import Essentials:
+#include <Arduino_LED_Matrix.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+
+// Define sample rate:
+#define BNO055_SAMPLERATE_DELAY_MS (100)
+
+// IMU Object:
+Adafruit_BNO055 myIMU = Adafruit_BNO055();
+
+// Declare Matrix Object:
+ArduinoLEDMatrix matrix;
+
+// Define Image Bitmap:
+byte Frame[8][12] = {
+  {1,1,1,0,0,0,0,0,0,1,1,1},
+  {1,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,1},
+  {0,0,0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0,0,0},
+  {1,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,1},
+  {1,1,1,0,0,0,0,0,0,1,1,1}
+};
+
+int x = 5;
+int y = 3;
+
+int Pixel_X = 5;
+int Pixel_Y = 3;
+
+// Setup:
+void setup() {
+
+  // Instatiations:
+  Serial.begin(115200);
+  myIMU.begin();
+  matrix.begin();
+  delay(1000);
+
+  int8_t temp = myIMU.getTemp();
+  myIMU.setExtCrystalUse(true);
+
+  // Render Bitmap Image:
+  matrix.renderBitmap(Frame, 12, 8);
+
+}
+
+// Program Loop:
+void loop() {
+
+  // Collect IMU Data:
+  imu::Vector<3> acc = myIMU.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+//  imu::Vector<3> gyro = myIMU.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+//  imu::Vector<3> mag = myIMU.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+//  imu::Vector<3> grav = myIMU.getVector(Adafruit_BNO055::VECTOR_GRAVITY);
+
+
+  Frame [Pixel_Y] [Pixel_X] = 0;
+  matrix.renderBitmap(Frame, 12, 8);
+
+  byte Frame[8][12] = {
+  {1,1,0,0,0,0,0,0,0,0,1,1},
+  {1,0,0,1,1,1,1,1,1,0,0,1},
+  {0,0,0,1,0,0,0,0,1,0,0,0},
+  {0,0,0,1,0,0,0,0,1,0,0,0},
+  {0,0,0,1,0,0,0,0,1,0,0,0},
+  {0,0,0,1,0,0,0,0,1,0,0,0},
+  {1,0,0,1,1,1,1,1,1,0,0,1},
+  {1,1,0,0,0,0,0,0,0,0,1,1}
+};
+
+  // Unpack Data:
+  int Accelerometer_X = (int(acc.x())); // Left - Right +
+  int Accelerometer_Y = (int(acc.z())); // Forward - Backwards +
+
+  Serial.println(Accelerometer_X);
+
+  Pixel_X = (Accelerometer_X + x);
+  Pixel_Y = (Accelerometer_Y + y);
+  Pixel_Y = 7 - Pixel_Y;
+
+  if (Pixel_X < 0) {Pixel_X = 0;}
+  if (Pixel_X > 10) {Pixel_X = 10;}
+  if (Pixel_Y < 1) {Pixel_Y = 1;}
+  if (Pixel_Y > 7) {Pixel_Y = 7;}
+
+  Frame [Pixel_Y] [Pixel_X] = 1;
+  Frame [Pixel_Y - 1] [Pixel_X] = 1;
+  Frame [Pixel_Y] [Pixel_X + 1] = 1;
+  Frame [Pixel_Y - 1] [Pixel_X + 1] = 1;
+
+  matrix.renderBitmap(Frame, 12, 8);
+
+  delay(BNO055_SAMPLERATE_DELAY_MS);
+  
+}
