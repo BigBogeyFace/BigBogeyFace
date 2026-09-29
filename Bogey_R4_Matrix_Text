@@ -1,0 +1,29 @@
+// Text on LED Matrix:
+
+// Arduino R4 Master Code:
+#include "ArduinoGraphics.h"
+#include <Arduino_LED_Matrix.h>
+
+// Instanciate Matrix Object:
+ArduinoLEDMatrix matrix;
+
+// Program Setup:
+void setup() {
+
+  // Begin LED Matrix:
+  matrix.begin();
+
+  // Render Matrix:
+  matrix.clear();
+  delay(10);
+  matrix.beginDraw();
+  matrix.textFont(Font_4x6);
+  matrix.beginText(2, 2, 1);  // (X, Y, State)
+  matrix.println("Hi");
+  matrix.endText();
+  matrix.endDraw();
+}
+
+// Program Loop:
+void loop() {
+}
