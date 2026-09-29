@@ -1,0 +1,29 @@
+
+// UART Transception R4 >< Servo Drivers:
+
+String incoming = "";
+
+void setup() {
+  Serial.begin(115200);     // USB serial
+  Serial1.begin(115200);    // UART to servo drivers
+  delay(2000);
+}
+
+void loop() {
+
+  // Transmit Data to Servo Drivers:
+  Serial1.println("A,1,0");
+
+  // Receive Data from Servo Drivers:
+  while (Serial1.available()) {
+    char c = Serial1.read();
+
+    if (c == '\n') {
+      Serial.print("Received: ");
+      Serial.println(incoming);
+      incoming = "";
+    } else {
+      incoming += c;
+    }
+  }
+}
