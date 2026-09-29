@@ -1,0 +1,88 @@
+import machine
+import time
+from machine import Pin, SoftI2C
+from sh1107 import SH1107
+from servo import servo2040
+from pimoroni import Button
+from plasma import WS2812
+
+
+# --- CONFIGURATION ---
+BOARD_ID = "B" 
+SCREEN_WIDTH = 128
+SCREEN_HEIGHT = 128
+
+# --- INITIALIZE UART (On Servo Pin 2) ---
+uart = machine.UART(0, baudrate=115200, tx=machine.Pin(0), rx=machine.Pin(1))
+
+# --- INITIALIZE I2C OLED ---
+# On Servo 2040, SDA is GP20 and SCL is GP21
+i2c = SoftI2C(scl=Pin(21), sda=Pin(20), freq=400000)
+oled = SH1107(128, 128, i2c)
+
+# Clear display and show initial status
+oled.fill(0)
+oled.text(f"Board: {BOARD_ID}", 0, 0)
+oled.text("Waiting for R4...", 0, 16)
+oled.show()
+
+print(f"Servo {BOARD_ID} active with OLED display.")
+
+buffer = ""
+
+# Rainbow Fall Global Variables:
+SPEED = 20
+BRIGHTNESS = 0.3
+UPDATES = 50
+
+# Rainbow Fall Instantiation:
+led_bar = WS2812(servo2040.NUM_LEDS, 1, 0, servo2040.LED_DATA)
+led_bar.start()
+offset = 0.0
+
+# Rainbow Fall:
+for j in range(110):
+    offset += SPEED / 1000.0
+    for i in range(servo2040.NUM_LEDS):
+        hue = float(i) / servo2040.NUM_LEDS
+        led_bar.set_hsv(i, hue + offset, 1.0, BRIGHTNESS)
+    time.sleep(1.0 / UPDATES)
+    
+while True:
+    if uart.any():
+        data = uart.read().decode('utf-8')
+        buffer += data
+        
+        if "\n" in buffer:
+            line, buffer = buffer.split("\n", 1)
+            line = line.strip()
+            
+            try:
+                parts = line.split(",")
+                if len(parts) == 3:
+                    target_id = parts[0]
+                    servo_num = int(parts[1])
+                    angle = int(parts[2])
+                    
+                    if target_id == BOARD_ID:
+                        # Clear screen layout
+                        oled.fill(0)
+                        
+                        # Draw header text
+                        oled.text(f"Board ID: {BOARD_ID}", 0, 0)
+                        oled.text("-" * 16, 0, 10)
+                        
+                        # Draw matching target data
+                        oled.text(f"Servo Num: {servo_num}", 0, 24)
+                        oled.text(f"Set Angle: {angle} deg", 0, 40)
+                        oled.show()
+                        
+                        print(f"Match! Display Updated: S{servo_num} -> {angle}")
+                        
+            except ValueError:
+                pass 
+                
+    time.sleep(0.01)
+
+
+
