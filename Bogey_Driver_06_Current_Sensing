@@ -1,0 +1,39 @@
+import time
+from pimoroni import Analog, AnalogMux
+from servo import Servo, servo2040
+
+# Setup multiplexer and current sensor
+mux = AnalogMux(servo2040.ADC_ADDR_0, servo2040.ADC_ADDR_1, servo2040.ADC_ADDR_2)
+cur_adc = Analog(
+    servo2040.SHARED_ADC,
+    servo2040.CURRENT_GAIN,
+    servo2040.SHUNT_RESISTOR,
+    servo2040.CURRENT_OFFSET,
+)
+
+# Select current sensor address
+mux.select(servo2040.CURRENT_SENSE_ADDR)
+
+# Setup servo
+s = Servo(servo2040.SERVO_1)
+s.enable()
+
+# Tuned pulse limits for 0 to 270 degrees
+MIN_PULSE = 550
+MAX_PULSE = 2560
+
+def set_angle(angle):
+    pulse_us = int(MIN_PULSE + (angle / 270) * (MAX_PULSE - MIN_PULSE))
+    s.pulse(pulse_us)
+
+angles = [0, 90, 180, 270, 180, 90, 0]
+
+while True:
+    time.sleep(5)
+    for angle in angles:
+        set_angle(angle)
+
+        current = cur_adc.read_current()
+        print(f"Angle: {angle}° | Current: {current:.2f} A")
+
+        time.sleep(1)
