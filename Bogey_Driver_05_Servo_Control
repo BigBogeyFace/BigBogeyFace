@@ -1,0 +1,34 @@
+
+# Import Dependencies:
+import time
+from servo import Servo, servo2040
+
+# Setup Servos:
+servo_1 = Servo(servo2040.SERVO_1)
+servo_2 = Servo(servo2040.SERVO_8)
+
+# Setup Pulse Thresholds:
+MIN_PULSE = 550
+MAX_PULSE = 2560
+
+# Set Angle Function:
+def set_angle(servo, angle):
+    pulse_us = int(MIN_PULSE + (angle / 270) * (MAX_PULSE - MIN_PULSE))
+    servo.pulse(pulse_us)
+
+# Declare Angles:
+Servo_One_Angle = 90
+Servo_Two_Angle = 90
+
+# Enable and Set Servo One:
+servo_1.enable()
+set_angle(servo_1, Servo_One_Angle)
+print("Servo 1:", Servo_One_Angle)
+
+time.sleep(3)
+
+# Enable and Set Servo Two:
+servo_2.enable()
+set_angle(servo_2, Servo_Two_Angle)
+print("Servo 2:", Servo_Two_Angle)
+
